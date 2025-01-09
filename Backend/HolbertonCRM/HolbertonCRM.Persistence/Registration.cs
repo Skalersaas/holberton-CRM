@@ -2,15 +2,11 @@
 using HolbertonCRM.Models;
 using HolbertonCRM.Persistence.Interfaces;
 using HolbertonCRM.Persistence.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace HolbertonCRM.Persistence
 {
@@ -31,7 +27,9 @@ namespace HolbertonCRM.Persistence
                 opt.Password.RequireDigit = false;
                 opt.SignIn.RequireConfirmedEmail = false;
             })
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
+
         }
 
         static void ConfigureDatabase(IServiceCollection services)

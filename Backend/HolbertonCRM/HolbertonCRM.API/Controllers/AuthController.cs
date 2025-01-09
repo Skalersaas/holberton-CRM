@@ -48,12 +48,12 @@ namespace HolbertonCRM.API.Controllers
 
             var loginResult = await _accountService.Login(loginDto);
 
-            if (loginResult.AppUser == null)
+            if (loginResult.User == null)
             {
                 return Unauthorized("Invalid username or password.");
             }
 
-            return Ok(new { loginResult.AppUser, loginResult.Token });
+            return Ok(new { loginResult.User, loginResult.Token });
         }
 
         // Change the user's password
@@ -82,35 +82,36 @@ namespace HolbertonCRM.API.Controllers
         }
 
         // Initiate password reset by sending an email with a reset link
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordDto forgetPasswordDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request.");
-            }
+        //[HttpPost("forgot-password")]
+        //public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordDto forgetPasswordDto)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest("Invalid request.");
+        //    }
 
-            var user = await _accountService.GetUserByNameOrEmail(forgetPasswordDto.Email);
+        //    var user = await _accountService.GetUserByNameOrEmail(forgetPasswordDto.Email);
 
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
+        //    if (user == null)
+        //    {
+        //        return NotFound("User not found.");
+        //    }
 
-            var token = await _accountService.GeneratePasswordResetToken(user);
-            var resetLink = Url.Action(nameof(ResetPassword), "Account", new { userId = user.Id, token }, Request.Scheme);
+        //    var token = await _accountService.GeneratePasswordResetToken(user);
+        //    var resetLink = Url.Action(nameof(ResetPassword), "Account", new { userId = user.Id, token }, Request.Scheme);
 
-            var success = await _accountService.InitiatePasswordReset(forgetPasswordDto.Email, resetLink);
+        //    var success = await _accountService.InitiatePasswordReset(forgetPasswordDto.Email, resetLink);
 
-            if (!success)
-            {
-                return BadRequest("Could not initiate password reset.");
-            }
+        //    if (!success)
+        //    {
+        //        return BadRequest("Could not initiate password reset.");
+        //    }
 
-            return Ok("Password reset link sent to your email.");
-        }
+        //    return Ok("Password reset link sent to your email.");
+        //}
 
         // Reset the user's password using a token sent via email
+
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
@@ -135,12 +136,12 @@ namespace HolbertonCRM.API.Controllers
         }
 
         // Logout the user
-        [HttpPost("logout")]
-        [Authorize]
-        public async Task<IActionResult> Logout()
-        {
-            await _accountService.Logout();
-            return Ok("Logged out successfully.");
-        }
+        //[HttpPost("logout")]
+        //[Authorize]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    await _accountService.Logout();
+        //    return Ok("Logged out successfully.");
+        //}
     }
 }

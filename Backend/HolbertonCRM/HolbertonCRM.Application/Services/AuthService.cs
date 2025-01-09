@@ -1,4 +1,5 @@
-﻿using HolbertonCRM.Application.DTOs.Auth;
+﻿using AutoMapper;
+using HolbertonCRM.Application.DTOs.Auth;
 using HolbertonCRM.Application.Interfaces;
 using HolbertonCRM.Models;
 using HolbertonCRM.Utilities.Enums;
@@ -18,11 +19,13 @@ namespace HolbertonCRM.Application.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         //private readonly IEmailService _emailService;
+        private readonly IMapper _mapper;
 
-        public AuthService(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
+        public AuthService(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _mapper = mapper;
         }
 
 
@@ -59,7 +62,7 @@ namespace HolbertonCRM.Application.Services
                 if (result.Succeeded)
                 {
                     AssignRole(user.Email, UserRole.Staff.ToString());
-                    SendVerificationEmailAsync(user);
+                    //SendVerificationEmailAsync(user);
 
                     return UserRegistrationResult.Success;
                 }
@@ -84,21 +87,14 @@ namespace HolbertonCRM.Application.Services
                 return new LoginResponseDto() { User = null, Token = "" };
             }
 
-            //if user was found , Generate JWT Token
             var roles = _userManager.GetRolesAsync(user).GetAwaiter().GetResult();
             var token = _jwtTokenGenerator.GenerateToken(user, roles);
 
-            UserDto userDTO = new()
-            {
-                //Email = user.Email,
-                ID = user.Id,
-                Name = user.UserName,
-                PhoneNumber = user.PhoneNumber
-            };
+            UserDto userDto = _mapper.Map<UserDto>(user);
 
             LoginResponseDto loginResponseDto = new LoginResponseDto()
             {
-                User = userDTO,
+                User = userDto,
                 Token = token
             };
 
@@ -154,17 +150,17 @@ namespace HolbertonCRM.Application.Services
             return result;
         }
 
-        public async Task<bool> InitiatePasswordReset(string email, string resetLink)
-        {
-            AppUser existUser = await _userManager.FindByEmailAsync(email);
-            if (existUser == null)
-            {
-                return false;
-            }
+        //public async Task<bool> InitiatePasswordReset(string email, string resetLink)
+        //{
+        //    AppUser existUser = await _userManager.FindByEmailAsync(email);
+        //    if (existUser == null)
+        //    {
+        //        return false;
+        //    }
 
-            _emailService.PrepareEmail(new EmailMember() { subject = "resetPassword", email = email, link = resetLink });
-            return true;
-        }
+        //    _emailService.PrepareEmail(new EmailMember() { subject = "resetPassword", email = email, link = resetLink });
+        //    return true;
+        //}
 
         public async Task<IdentityResult> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
@@ -188,10 +184,10 @@ namespace HolbertonCRM.Application.Services
             return await _userManager.GeneratePasswordResetTokenAsync(existUser);
         }
 
-        public async Task Logout()
-        {
-            await _signInManager.SignOutAsync();
-        }
+        //public async Task Logout()
+        //{
+        //    await _signInManager.SignOutAsync();
+        //}
 
 
         private AppUser CreateUserFromDto(RegisterDto registrationRequestDto)
@@ -203,7 +199,7 @@ namespace HolbertonCRM.Application.Services
                     UserName = registrationRequestDto.Email,
                     Email = registrationRequestDto.Email,
                     NormalizedEmail = registrationRequestDto.Email.ToUpper(),
-                    FullName = registrationRequestDto.Name
+                    Name = registrationRequestDto.Name
                 };
                 return user;
             }
@@ -222,11 +218,11 @@ namespace HolbertonCRM.Application.Services
         //        }
         //    );
         //}
-        //private static string GenerateOTP()
-        //{
-        //    Random random = new();
-        //    int otpNumber = random.Next(1000, 9999);
-        //    return otpNumber.ToString();
-        //}
+        private static string GenerateOTP()
+        {
+            Random random = new();
+            int otpNumber = random.Next(1000, 9999);
+            return otpNumber.ToString();
+        }
     }
 }

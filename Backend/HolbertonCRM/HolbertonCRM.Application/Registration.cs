@@ -1,4 +1,5 @@
 ﻿using HolbertonCRM.Application.Interfaces;
+using HolbertonCRM.Application.Mapper;
 using HolbertonCRM.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,7 +16,10 @@ namespace HolbertonCRM.Application
         {
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-
+            services.AddAutoMapper(option =>
+            {
+                option.AddProfile<MapProfile>();
+            });
         }
     }
 }

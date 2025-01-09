@@ -13,12 +13,12 @@ namespace HolbertonCRM.Application.Interfaces
         //Task<bool> ConfirmEmailAndSignIn(ConfirmAccountDto confirmAccountDto);
         //Task<bool> ResendOTP(string email);
         Task<IdentityResult> ChangePassword(ChangePasswordDto changePasswordDto);
-        Task<bool> InitiatePasswordReset(string email, string resetLink);
+        //Task<bool> InitiatePasswordReset(string email, string resetLink);
         Task<IdentityResult> ResetPassword(ResetPasswordDto resetPasswordDto);
         Task<AppUser> GetUserByNameOrEmail(string userNameOrEmail);
-        Task<string> GeneratePasswordResetToken(AppUser existUser);
+        //Task<string> GeneratePasswordResetToken(AppUser existUser);
         //Task<List<AppUser>> GetAllUsers();
         Task<bool> AssignRole(string email, string roleName);
-        Task Logout();
+        //Task Logout();
     }
 }

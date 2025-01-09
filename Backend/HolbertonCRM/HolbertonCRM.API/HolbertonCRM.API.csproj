@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HolbertonCRM.Application\HolbertonCRM.Application.csproj" />
+    <ProjectReference Include="..\HolbertonCRM.Persistence\HolbertonCRM.Persistence.csproj" />
+    <ProjectReference Include="..\HolbertonCRM.Utilities\HolbertonCRM.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>

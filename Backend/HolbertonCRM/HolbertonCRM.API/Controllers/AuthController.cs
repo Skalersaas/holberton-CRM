@@ -1,5 +1,7 @@
-﻿using HolbertonCRM.Application.DTOs.Auth;
+﻿using HolbertonCRM.Application.DTOs;
+using HolbertonCRM.Application.DTOs.Auth;
 using HolbertonCRM.Application.Interfaces;
+using HolbertonCRM.Utilities.ConstantMessages;
 using HolbertonCRM.Utilities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,137 +13,145 @@ namespace HolbertonCRM.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly ResponseDto _responseDto;
         private readonly IAuthService _accountService;
 
         public AuthController(IAuthService accountService)
         {
             _accountService = accountService;
+            _responseDto = new ResponseDto();
         }
 
-        // Register a new user
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                _responseDto.IsSuccess = false;
+                _responseDto.Message = AuthMessages.InvalidModelState;
+                return BadRequest(_responseDto);
             }
 
             var registrationResult = await _accountService.Register(registerDto);
 
             if (registrationResult == UserRegistrationResult.Success)
             {
-                return StatusCode(201, "Registration successful.");
+                _responseDto.Message = AuthMessages.RegistrationSuccessful;
             }
 
-            return BadRequest("Registration failed.");
+            _responseDto.IsSuccess = false;
+            _responseDto.Message = AuthMessages.RegistrationFailed;
+            return BadRequest(_responseDto);
         }
 
-        // User login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid login attempt.");
+                _responseDto.IsSuccess = false;
+                _responseDto.Message = AuthMessages.InvalidLoginAttempt;
+                return BadRequest(_responseDto);
             }
 
             var loginResult = await _accountService.Login(loginDto);
 
             if (loginResult.User == null)
             {
-                return Unauthorized("Invalid username or password.");
+                _responseDto.IsSuccess = false;
+                _responseDto.Message = AuthMessages.InvalidUsernameOrPassword;
+                return Unauthorized(_responseDto);
             }
 
-            return Ok(new { loginResult.User, loginResult.Token });
+            _responseDto.Result = new { loginResult.User, loginResult.Token };
+            _responseDto.Message = AuthMessages.LoginSuccessful;
+            return Ok(_responseDto);
         }
 
-        // Change the user's password
         [HttpPost("change-password")]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid change password request.");
+                _responseDto.IsSuccess = false;
+                _responseDto.Message = AuthMessages.InvalidPasswordChangeRequest;
+                return BadRequest(_responseDto);
             }
 
             var result = await _accountService.ChangePassword(changePasswordDto);
 
             if (result.Succeeded)
             {
-                return Ok("Password changed successfully.");
+                _responseDto.Message = AuthMessages.PasswordChangeSuccessful;
+                return Ok(_responseDto);
             }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.ToString());
-            }
-
-            return BadRequest(ModelState);
+            _responseDto.IsSuccess = false;
+            _responseDto.Message = AuthMessages.PasswordChangeFailed;
+            _responseDto.Result = result.Errors;
+            return BadRequest(_responseDto);
         }
 
-        // Initiate password reset by sending an email with a reset link
-        //[HttpPost("forgot-password")]
-        //public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordDto forgetPasswordDto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest("Invalid request.");
-        //    }
-
-        //    var user = await _accountService.GetUserByNameOrEmail(forgetPasswordDto.Email);
-
-        //    if (user == null)
-        //    {
-        //        return NotFound("User not found.");
-        //    }
-
-        //    var token = await _accountService.GeneratePasswordResetToken(user);
-        //    var resetLink = Url.Action(nameof(ResetPassword), "Account", new { userId = user.Id, token }, Request.Scheme);
-
-        //    var success = await _accountService.InitiatePasswordReset(forgetPasswordDto.Email, resetLink);
-
-        //    if (!success)
-        //    {
-        //        return BadRequest("Could not initiate password reset.");
-        //    }
-
-        //    return Ok("Password reset link sent to your email.");
-        //}
-
-        // Reset the user's password using a token sent via email
-
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordDto forgetPasswordDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request.");
             }
 
+            var user = await _accountService.GetUserByNameOrEmail(forgetPasswordDto.Email);
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            var token = await _accountService.GeneratePasswordResetToken(user);
+            var resetLink = Url.Action(nameof(ResetPassword), "Account", new { userId = user.Id, token }, Request.Scheme);
+
+            var success = await _accountService.InitiatePasswordReset(forgetPasswordDto.Email, resetLink);
+
+            if (!success)
+            {
+                return BadRequest("Could not initiate password reset.");
+            }
+
+            return Ok("Password reset link sent to your email.");
+        }
+
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _responseDto.IsSuccess = false;
+                _responseDto.Message = AuthMessages.InvalidPasswordResetRequest;
+                return BadRequest(_responseDto);
+            }
+
             var result = await _accountService.ResetPassword(resetPasswordDto);
 
             if (result.Succeeded)
             {
-                return Ok("Password reset successfully.");
+                _responseDto.Message = AuthMessages.PasswordResetSuccessful;
+                return Ok(_responseDto);
             }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.ToString());
-            }
-
-            return BadRequest(ModelState);
+            _responseDto.IsSuccess = false;
+            _responseDto.Message = AuthMessages.PasswordResetFailed;
+            _responseDto.Result = result.Errors;
+            return BadRequest(_responseDto);
         }
 
-        // Logout the user
-        //[HttpPost("logout")]
-        //[Authorize]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    await _accountService.Logout();
-        //    return Ok("Logged out successfully.");
-        //}
+       [HttpPost("logout")]
+       [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await _accountService.Logout();
+            return Ok("Logged out successfully.");
+        }
     }
 }

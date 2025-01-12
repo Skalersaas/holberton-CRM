@@ -1,11 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HolbertonCRM.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HolbertonCRM.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AdmissionController(/*ApplicationContext context*/) : ControllerBase
+    public class AdmissionController : ControllerBase
     {
+        private readonly IAdmissionService _admissionService;
+
+        public AdmissionController(IAdmissionService admissionService)
+        {
+            _admissionService = admissionService;
+        }
+
         //[HttpGet("all")]
         //public ObjectResult All() => Ok(context.GetAllAdmissions());
 

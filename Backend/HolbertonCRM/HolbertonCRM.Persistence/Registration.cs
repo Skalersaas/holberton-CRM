@@ -14,11 +14,11 @@ namespace HolbertonCRM.Persistence
     {
         public static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
-            ConfigureDatabase(services);
-
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            services.AddIdentityCore<AppUser>(opt =>
+            EnvLoader.LoadEnvFile(".env");
+            string? cs = Environment.GetEnvironmentVariable("ConnectionString");
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(cs));
+            services.AddDataProtection();
+            services.AddIdentity<AppUser, IdentityRole>(opt =>
             {
                 opt.Password.RequireNonAlphanumeric = false;
                 opt.Password.RequiredLength = 2;
@@ -28,15 +28,8 @@ namespace HolbertonCRM.Persistence
                 opt.SignIn.RequireConfirmedEmail = false;
             })
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
-
-        }
-
-        static void ConfigureDatabase(IServiceCollection services)
-        {
-            EnvLoader.LoadEnvFile(".env");
-            string? cs = Environment.GetEnvironmentVariable("ConnectionString");
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(cs));
+            .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
     }
 }

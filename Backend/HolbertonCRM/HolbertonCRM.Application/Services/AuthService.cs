@@ -1,33 +1,31 @@
 ﻿using AutoMapper;
 using HolbertonCRM.Application.DTOs.Auth;
 using HolbertonCRM.Application.Interfaces;
+using HolbertonCRM.Domain.Models;
 using HolbertonCRM.Models;
 using HolbertonCRM.Utilities.Enums;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HolbertonCRM.Application.Services
 {
     public class AuthService : IAuthService
     {
         private readonly UserManager<AppUser> _userManager;
-        //private readonly SignInManager<AppUser> _signInManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        //private readonly IEmailService _emailService;
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
 
-        public AuthService(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
+        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<IdentityRole> roleManager, IJwtTokenGenerator jwtTokenGenerator, IEmailService emailService, IMapper mapper)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
             _roleManager = roleManager;
+            _jwtTokenGenerator = jwtTokenGenerator;
+            _emailService = emailService;
             _mapper = mapper;
         }
-
 
         public async Task<bool> AssignRole(string email, string roleName)
         {
@@ -48,6 +46,7 @@ namespace HolbertonCRM.Application.Services
         {
             return await _userManager.FindByNameAsync(userNameOrEmail) ?? await _userManager.FindByEmailAsync(userNameOrEmail);
         }
+
         public List<AppUser> GetAllUsers()
         {
             return _userManager.Users.ToList();
@@ -62,7 +61,7 @@ namespace HolbertonCRM.Application.Services
                 if (result.Succeeded)
                 {
                     AssignRole(user.Email, UserRole.Staff.ToString());
-                    //SendVerificationEmailAsync(user);
+                    SendVerificationEmailAsync(user);
 
                     return UserRegistrationResult.Success;
                 }
@@ -101,42 +100,42 @@ namespace HolbertonCRM.Application.Services
             return loginResponseDto;
         }
 
-        //public async Task<bool> ConfirmEmailAndSignIn(ConfirmAccountDto confirmAccountDto)
-        //{
-        //    AppUser existUser = await _userManager.FindByEmailAsync(confirmAccountDto.Email);
-        //    if (existUser == null)
-        //    {
-        //        return false;
-        //    }
+        public async Task<bool> ConfirmEmailAndSignIn(ConfirmAccountDto confirmAccountDto)
+        {
+            AppUser existUser = await _userManager.FindByEmailAsync(confirmAccountDto.Email);
+            if (existUser == null)
+            {
+                return false;
+            }
 
-        //    if (existUser.OTP != confirmAccountDto.OTP || string.IsNullOrEmpty(confirmAccountDto.OTP))
-        //    {
-        //        return false;
-        //    }
+            if (existUser.OTP != confirmAccountDto.OTP || string.IsNullOrEmpty(confirmAccountDto.OTP))
+            {
+                return false;
+            }
 
-        //    string token = await _userManager.GenerateEmailConfirmationTokenAsync(existUser);
-        //    await _userManager.ConfirmEmailAsync(existUser, token);
-        //    await _signInManager.SignInAsync(existUser, isPersistent: false);
+            string token = await _userManager.GenerateEmailConfirmationTokenAsync(existUser);
+            await _userManager.ConfirmEmailAsync(existUser, token);
+            await _signInManager.SignInAsync(existUser, isPersistent: false);
 
-        //    return true;
-        //}
+            return true;
+        }
 
-        //public async Task<bool> ResendOTP(string email)
-        //{
-        //    string otp = GenerateOTP();
-        //    AppUser existUser = await _userManager.FindByEmailAsync(email);
+        public async Task<bool> ResendOTP(string email)
+        {
+            string otp = GenerateOTP();
+            AppUser existUser = await _userManager.FindByEmailAsync(email);
 
-        //    if (existUser == null)
-        //    {
-        //        return false; // User not found, could not resend OTP.
-        //    }
+            if (existUser == null)
+            {
+                return false;
+            }
 
-        //    existUser.OTP = otp;
-        //    await _userManager.UpdateAsync(existUser);
+            existUser.OTP = otp;
+            await _userManager.UpdateAsync(existUser);
 
-        //    SendVerificationEmailAsync(existUser);
-        //    return true;
-        //}
+            SendVerificationEmailAsync(existUser);
+            return true;
+        }
 
         public async Task<IdentityResult> ChangePassword(ChangePasswordDto changePasswordDto)
         {
@@ -150,17 +149,17 @@ namespace HolbertonCRM.Application.Services
             return result;
         }
 
-        //public async Task<bool> InitiatePasswordReset(string email, string resetLink)
-        //{
-        //    AppUser existUser = await _userManager.FindByEmailAsync(email);
-        //    if (existUser == null)
-        //    {
-        //        return false;
-        //    }
+        public async Task<bool> InitiatePasswordReset(string email, string resetLink)
+        {
+            AppUser existUser = await _userManager.FindByEmailAsync(email);
+            if (existUser == null)
+            {
+                return false;
+            }
 
-        //    _emailService.PrepareEmail(new EmailMember() { subject = "resetPassword", email = email, link = resetLink });
-        //    return true;
-        //}
+            _emailService.SendAsync(new EmailMember() { subject = "resetPassword", to = email, body = resetLink });
+            return true;
+        }
 
         public async Task<IdentityResult> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
@@ -184,10 +183,10 @@ namespace HolbertonCRM.Application.Services
             return await _userManager.GeneratePasswordResetTokenAsync(existUser);
         }
 
-        //public async Task Logout()
-        //{
-        //    await _signInManager.SignOutAsync();
-        //}
+        public async Task Logout()
+        {
+            await _signInManager.SignOutAsync();
+        }
 
 
         private AppUser CreateUserFromDto(RegisterDto registrationRequestDto)
@@ -207,17 +206,17 @@ namespace HolbertonCRM.Application.Services
         }
 
 
-        //private void SendVerificationEmailAsync(AppUser appUser)
-        //{
-        //    _emailService.PrepareEmail(
-        //        new EmailMember()
-        //        {
-        //            email = appUser.Email,
-        //            subject = "verify",
-        //            OTP = appUser.OTP
-        //        }
-        //    );
-        //}
+        private void SendVerificationEmailAsync(AppUser appUser)
+        {
+            _emailService.SendAsync(
+                new EmailMember()
+                {
+                    to = appUser.Email,
+                    subject = "verify",
+                    body = appUser.OTP
+                }
+            );
+        }
         private static string GenerateOTP()
         {
             Random random = new();

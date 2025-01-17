@@ -3,52 +3,49 @@ using Microsoft.EntityFrameworkCore;
 
 namespace holberton_CRM.Data
 {
-    public partial class ApplicationContext: DbContext
+    public class ApplicationContext : DbContext
     {
-        public DbSet<User> Users { get; set; } 
+        public DbSet<User> Users { get; set; }
+        public DbSet<Student> Students { get; set; }
         public DbSet<Admission> Admissions { get; set; }
+        public DbSet<AdmissionChange> AdmissionChanges { get; set; }
         public DbSet<AdmissionNote> AdmissionNotes { get; set; }
-        public DbSet<ChangeHistory> ChangeHistory { get; set; }
+
         public ApplicationContext(DbContextOptions options) : base(options)
         {
             Database.EnsureCreated();
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>().Property(u => u.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<User>().Property(u => u.Guid).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Student>().Property(s => s.Guid).ValueGeneratedOnAdd();
 
-            modelBuilder.Entity<AdmissionNote>().Property(n => n.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<AdmissionNote>().Property(note => note.Guid).ValueGeneratedOnAdd();
+            modelBuilder.Entity<AdmissionChange>().Property(change => change.Guid).ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Admission>(adm =>
             {
-                adm.Property(a => a.Id).ValueGeneratedOnAdd();
-                adm.HasMany(a => a.Notes) 
-                    .WithOne()          
-                    .HasForeignKey("AdmissionId")
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
-            modelBuilder.Entity<ChangeHistory>(change =>
-            {
-                change.Property(c => c.Id).ValueGeneratedOnAdd();
-                change.HasOne(c => c.Admission)
-                    .WithMany()
-                    .HasForeignKey(c => c.AdmissionId);
-            });
-        }
+                adm.Property(adm => adm.Guid).ValueGeneratedOnAdd();
+                
+                adm.HasOne(adm => adm.Student)
+                .WithMany()
+                .HasForeignKey(adm => adm.StudentGuid)
+                .IsRequired();
 
-        public void UpdateEntity<T>(T source, T destination, params string[] excludeProperties)
-        {
-            var properties = typeof(T).GetProperties()
-                .Where(p => p.CanWrite && !excludeProperties.Contains(p.Name));
+                adm.HasOne(adm => adm.User)
+                .WithMany()
+                .HasForeignKey(adm => adm.UserGuid)
+                .IsRequired();
 
-            foreach (var property in properties)
-            {
-                var value = property.GetValue(source);
-                property.SetValue(destination, value);
-            }
-            SaveChanges();
+                adm.HasMany(adm => adm.Notes)
+                .WithOne(note => note.Admission)
+                .HasForeignKey(adm => adm.Guid)
+                .OnDelete(DeleteBehavior.Cascade);
+            });
+
         }
     }
 }

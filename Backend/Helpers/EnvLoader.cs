@@ -9,7 +9,7 @@
 
             foreach (var line in File.ReadAllLines(filePath))
             {
-                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#"))
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith('W'))
                     continue;
 
                 var parts = line.Split('=', 2);

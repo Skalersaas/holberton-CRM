@@ -1,17 +1,22 @@
 ﻿using holberton_CRM.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace holberton_CRM.Models
 {
+    [PrimaryKey(nameof(Guid))]
     public class Admission
     {
-        public int Id { get; set; }
         public Guid Guid { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Surname { get; set; } = string.Empty;
-        public string Program {  get; set; } = string.Empty;
-        public DateOnly ApplyDate { get; set; }
-        public string PhoneNumber {  get; set; } = string.Empty;
+        
+        public Guid StudentGuid { get; set; }
+        public Student Student { get; set; } = new();
+        
+        public Guid UserGuid { get; set; }
+        public User User { get; set; } = new();
+
+        public string Program { get; set; } = string.Empty;
         public AdmissionStatus Status { get; set; }
+        public DateTime ApplyDate { get; set; }
         public List<AdmissionNote> Notes { get; set; } = [];
     }
 }

@@ -1,6 +1,8 @@
 using holberton_CRM.Data;
+using holberton_CRM.Data.Repositories;
 using holberton_CRM.Helpers;
 using holberton_CRM.Middleware;
+using holberton_CRM.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace holberton_CRM
@@ -11,8 +13,12 @@ namespace holberton_CRM
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            ConfigureDatabase(builder);
-            // Add services to the container.
+            // Db
+            ConfigureDatabase(builder.Services);
+            
+            // Repos
+            AddRepositories(builder.Services);
+
             builder.Services.AddControllers(options =>
             {
                 options.Conventions.Add(new GlobalRoutePrefixConvention()); 
@@ -23,6 +29,7 @@ namespace holberton_CRM
 
             var app = builder.Build();
             
+            app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseRouting();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -38,11 +45,19 @@ namespace holberton_CRM
 
             app.Run();
         }
-        public static void ConfigureDatabase(WebApplicationBuilder builder)
+        public static void ConfigureDatabase(IServiceCollection services)
         {
             EnvLoader.LoadEnvFile(".env");
             string? cs = Environment.GetEnvironmentVariable("ConnectionString");
-            builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(cs));
+            services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(cs));
+        }
+        public static void AddRepositories(IServiceCollection services)
+        {
+            services.AddScoped<IRepository<Student>, StudentRepository>();
+            services.AddScoped<IRepository<User>, UserRepository>();
+            services.AddScoped<IRepository<Admission>, AdmissionRepository>();
+            services.AddScoped<IRepository<AdmissionChange>, AdmissionChangeRepository>();
+            services.AddScoped<IRepository<AdmissionNote>, AdmissionNoteRepository>();
         }
     }
 }

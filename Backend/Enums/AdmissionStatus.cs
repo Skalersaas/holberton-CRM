@@ -2,7 +2,5 @@
 {
     public enum AdmissionStatus
     {
-        InProgress,
-        Enrolled
     }
 }

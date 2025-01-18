@@ -2,5 +2,9 @@
 {
     public enum AdmissionStatus
     {
+        NotSubmitted,
+        Contacted,
+        Signed,
+        Finalized
     }
 }

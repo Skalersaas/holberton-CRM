@@ -3,7 +3,7 @@
 namespace holberton_CRM.Models
 {
     [PrimaryKey(nameof(Guid))]
-    public class Student
+    public class Student : IModel
     {
         public Guid Guid { get; set; }
         public string Name { get; set; } = string.Empty;

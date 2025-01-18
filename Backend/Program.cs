@@ -1,9 +1,8 @@
 using holberton_CRM.Data;
-using holberton_CRM.Data.Repositories;
 using holberton_CRM.Helpers;
 using holberton_CRM.Middleware;
-using holberton_CRM.Models;
 using Microsoft.EntityFrameworkCore;
+using holberton_CRM.Data.Repositories;
 
 namespace holberton_CRM
 {
@@ -29,7 +28,7 @@ namespace holberton_CRM
 
             var app = builder.Build();
             
-            app.UseMiddleware<RequestLoggingMiddleware>();
+            //app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseRouting();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -53,11 +52,8 @@ namespace holberton_CRM
         }
         public static void AddRepositories(IServiceCollection services)
         {
-            services.AddScoped<IRepository<Student>, StudentRepository>();
-            services.AddScoped<IRepository<User>, UserRepository>();
-            services.AddScoped<IRepository<Admission>, AdmissionRepository>();
-            services.AddScoped<IRepository<AdmissionChange>, AdmissionChangeRepository>();
-            services.AddScoped<IRepository<AdmissionNote>, AdmissionNoteRepository>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<AdmissionManagement>();
         }
     }
 }

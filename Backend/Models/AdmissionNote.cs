@@ -3,7 +3,7 @@
 namespace holberton_CRM.Models
 {
     [PrimaryKey(nameof(Guid))]
-    public class AdmissionNote
+    public class AdmissionNote : IModel
     {
         public Guid Guid { get; set; }
         public DateTime CreatedOn { get; set; }

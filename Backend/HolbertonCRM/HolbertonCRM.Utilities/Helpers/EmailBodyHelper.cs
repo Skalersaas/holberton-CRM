@@ -1,17 +1,19 @@
 ﻿using HolbertonCRM.Utilities.ConstantMessages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HolbertonCRM.Utilities.Helpers
 {
     public class EmailBodyHelper
     {
+        private readonly IFileService _fileService;
+
+        public EmailBodyHelper(IFileService fileService)
+        {
+            _fileService = fileService;
+        }
+
         public static string PrepareBody(string templatePath, string subject, string link = null, string otp = null)
         {
-            string body = File.ReadAllText(templatePath);
+            string body = _fileService.ReadFile(templatePath, body);
 
             switch (subject.ToLower())
             {

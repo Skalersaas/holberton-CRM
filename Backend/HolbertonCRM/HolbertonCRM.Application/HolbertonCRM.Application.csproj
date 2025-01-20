@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HolbertonCRM.Domain\HolbertonCRM.Domain.csproj" />
+    <ProjectReference Include="..\HolbertonCRM.Utilities\HolbertonCRM.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

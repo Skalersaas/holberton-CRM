@@ -60,7 +60,7 @@ namespace HolbertonCRM.Application.Services
                 var result = _userManager.CreateAsync(user, registrationRequestDto.Password).GetAwaiter().GetResult();
                 if (result.Succeeded)
                 {
-                    AssignRole(user.Email, UserRole.Staff.ToString());
+                    await AssignRole(user.Email, UserRole.Staff.ToString());
                     SendVerificationEmailAsync(user);
 
                     return UserRegistrationResult.Success;

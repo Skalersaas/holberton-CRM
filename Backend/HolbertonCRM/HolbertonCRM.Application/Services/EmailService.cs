@@ -48,7 +48,9 @@ namespace HolbertonCRM.Application.Services
                 );
 
 
-                string templatePath = "templates/email_template.html";
+                string basePath = AppDomain.CurrentDomain.BaseDirectory;
+                string templatePath = Path.Combine(basePath, "templates", "email_template.html");
+
                 email.Body = new TextPart(TextFormat.Html)
                 {
                     Text = EmailBodyHelper.PrepareBody(templatePath, emailMember.subject, emailMember.link, emailMember.OTP)

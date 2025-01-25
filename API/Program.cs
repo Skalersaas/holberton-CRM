@@ -49,7 +49,9 @@ namespace API
         {
             EnvLoader.LoadEnvFile(".env");
             string? cs = Environment.GetEnvironmentVariable("ConnectionString");
+            Console.WriteLine(cs);
             services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(cs));
+            
         }
         public static void AddRepositories(IServiceCollection services)
         {

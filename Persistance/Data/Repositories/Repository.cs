@@ -1,5 +1,6 @@
 ﻿using Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Persistance.Data.Repositories
 {
@@ -20,6 +21,10 @@ namespace Persistance.Data.Repositories
         }
 
         public async Task<T?> GetByIdAsync(Guid id) => await _set.FindAsync(id);
+        public async Task<T?> GetByPredicateAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _set.FirstOrDefaultAsync(predicate);
+        }
         public async Task<IEnumerable<T>> GetAllAsync() => await _set.ToListAsync();
 
         public async Task UpdateAsync(T entity)

@@ -5,39 +5,108 @@ using Persistance.Data;
 using static Utilities.Services.ResponseGenerator;
 using System.Threading.Tasks;
 using Utilities.Services;
+using Microsoft.AspNetCore.Identity;
+using Utilities.Enums;
+using API.Services.IServices;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class UserController(IRepository<User> users) : CrudController<User>(users)
+    public class UserController : ControllerBase
     {
-        private readonly IRepository<User> _users = users;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
-        public override async Task<ObjectResult> Update([FromBody] User entity)
+        public UserController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IJwtTokenGenerator jwtTokenGenerator)
         {
-            var existingUser = await _users.GetByIdAsync(entity.Guid);
-
-            if (existingUser == null)
-                return NotFound(GenerateNotFoundResponse("User", "Guid"));
-
-            _users.Detach(existingUser);
-
-            await _users.UpdateAsync(entity);
-
-            return Ok(GenerateSuccessResponse());
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _jwtTokenGenerator = jwtTokenGenerator;
         }
 
-        public override async Task<ObjectResult> New([FromBody] User entity)
+        [HttpPost("new")]
+        public async Task<IActionResult> Register([FromBody] User user)
         {
-            if (!PasswordValidator.ValidatePassword(entity.Password))
-                return BadRequest(GenerateErrorResponse("Password does not meet requirements."));
+            if (user == null || string.IsNullOrWhiteSpace(user.Username))
+            {
+                return BadRequest(GenerateErrorResponse("Username cannot be empty!"));
+            }
 
-            if (await _users.GetByPredicateAsync(u => u.Username == entity.Username) != null)
-                return BadRequest(GenerateErrorResponse("Email already in use."));
+            if (!PasswordValidator.ValidatePassword(user.Password))
+            {
+                return BadRequest(GenerateErrorResponse("Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one digit."));
+            }
 
-            return await base.New(entity);
+            try
+            {
+                var result = await _userManager.CreateAsync(user, user.Password);
+
+                if (result.Succeeded)
+                {
+                    await AssignRole(user.Username, UserRole.Staff.ToString());
+                    return Ok(GenerateSuccessResponse());
+                }
+
+                var errorMessage = "User cannot be created: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                return BadRequest(GenerateErrorResponse(errorMessage));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, GenerateErrorResponse(ex.Message));
+            }
         }
 
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(string username, string password)
+        {
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                return BadRequest(GenerateErrorResponse("Username and Password cannot be empty!"));
+            }
+
+            var user = await GetUserByNameOrEmail(username);
+
+            bool isValid = await _userManager.CheckPasswordAsync(user, password);
+
+            if (user == null || isValid == false)
+            {
+                return Unauthorized(GenerateErrorResponse("Invalid username or password!"));
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _jwtTokenGenerator.GenerateToken(user, roles);
+
+            return Ok(GenerateSuccessResponse(user, token));
+        }
+
+
+        public async Task<bool> AssignRole(string username, string roleName)
+        {
+            var user = GetUserByNameOrEmail(username).GetAwaiter().GetResult();
+            if (user != null)
+            {
+                if (!_roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
+                {
+                    _roleManager.CreateAsync(new IdentityRole(roleName)).GetAwaiter().GetResult();
+                }
+                await _userManager.AddToRoleAsync(user, roleName);
+                return true;
+            }
+            return false;
+
+        }
+        public async Task<User> GetUserByNameOrEmail(string userNameOrEmail)
+        {
+            return await _userManager.FindByNameAsync(userNameOrEmail) ?? await _userManager.FindByEmailAsync(userNameOrEmail);
+        }
+
+        public List<User> GetAllUsers()
+        {
+            return _userManager.Users.ToList();
+        }
     }
 }

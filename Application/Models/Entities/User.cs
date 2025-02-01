@@ -1,4 +1,5 @@
-﻿using Utilities.Enums;
+﻿
+using Utilities.Enums;
 
 namespace Domain.Models.Entities
 {
@@ -9,7 +10,9 @@ namespace Domain.Models.Entities
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
-        public string Login { get; set; } = string.Empty;
+        public string? Login { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
     }
 }

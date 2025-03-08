@@ -6,7 +6,7 @@ WORKDIR /src
 COPY ["Backend.sln", "./"]
 COPY ["API/API.csproj", "API/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
-COPY ["Persistence/Persistence.csproj", "Persistence/"]
+COPY ["Persistance/Persistance.csproj", "Persistance/"]
 COPY ["Utilities/Utilities.csproj", "Utilities/"]
 
 # Restore dependencies for the entire solution

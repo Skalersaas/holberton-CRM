@@ -3,8 +3,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy the solution file and the project files for each project
-COPY ["Backend.sln", "./"]
-COPY ["API/API.csproj", "API/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Utilities/Utilities.csproj", "Utilities/"]
 COPY ["Persistance/Persistance.csproj", "Persistance/"]

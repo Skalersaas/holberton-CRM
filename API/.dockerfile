@@ -5,7 +5,6 @@ WORKDIR /src
 # Copy the solution file and the project files for each project
 COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Utilities/Utilities.csproj", "Utilities/"]
-COPY ["Persistance/Persistance.csproj", "Persistance/"]
 
 # Restore dependencies for the entire solution
 RUN dotnet restore

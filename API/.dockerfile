@@ -6,8 +6,8 @@ WORKDIR /src
 COPY ["Backend.sln", "./"]
 COPY ["API/API.csproj", "API/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
-COPY ["Persistance/Persistance.csproj", "Persistance/"]
 COPY ["Utilities/Utilities.csproj", "Utilities/"]
+COPY ["Persistance/Persistance.csproj", "Persistance/"]
 
 # Restore dependencies for the entire solution
 RUN dotnet restore

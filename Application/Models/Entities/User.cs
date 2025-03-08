@@ -15,12 +15,7 @@ namespace Domain.Models.Entities
         public UserRole Role { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
-<<<<<<< HEAD
-        public string Username { get; set; } = string.Empty;
-        public string? Login { get; set; } = string.Empty;
-=======
         public string Login { get; set; } = string.Empty;
->>>>>>> parent of 699593b (modify_userController)
         public string Password { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
     }

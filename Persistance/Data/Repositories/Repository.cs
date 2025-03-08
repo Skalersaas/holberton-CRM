@@ -28,16 +28,12 @@ namespace Persistance.Data.Repositories
         }
 
         public async Task<T?> GetByIdAsync(Guid id) => await _set.FindAsync(id);
-<<<<<<< HEAD
         public async Task<T?> GetBySlugAsync(string slug) => await _set.Where(x => x.Slug == slug).SingleAsync();
         public async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
         {
             var set = _set.AsQueryable();
             if (model.Valid())
                 set = set.Skip((model.Page - 1) * model.Size).Take(model.Size);
-=======
-        public async Task<IEnumerable<T>> GetAllAsync() => await _set.ToListAsync();
->>>>>>> parent of 699593b (modify_userController)
 
             return await set.ToListAsync();
         }

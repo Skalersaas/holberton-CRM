@@ -1,5 +1,5 @@
-﻿using Domain.Models;
-using Domain.Models.Entities;
+﻿using Domain.Models.Entities;
+using Domain.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistance.Data
@@ -28,6 +28,8 @@ namespace Persistance.Data
                     {
                         entityBuilder.Property("Guid").ValueGeneratedOnAdd();
                         entityBuilder.HasKey("Guid");
+
+                        entityBuilder.HasIndex("Slug").IsUnique();
                     });
                 }
             }
@@ -35,19 +37,19 @@ namespace Persistance.Data
             modelBuilder.Entity<Admission>(adm =>
             {
                 adm.HasOne(adm => adm.Student)
-                .WithMany()
-                .HasForeignKey(adm => adm.StudentGuid)
-                .IsRequired();
+                    .WithMany()
+                    .HasForeignKey(adm => adm.StudentGuid)
+                    .IsRequired();
 
                 adm.HasOne(adm => adm.User)
-                .WithMany()
-                .HasForeignKey(adm => adm.UserGuid)
-                .IsRequired();
+                   .WithMany()
+                   .HasForeignKey(adm => adm.UserGuid) 
+                   .IsRequired();
 
                 adm.HasMany(adm => adm.Notes)
-                .WithOne(note => note.Admission)
-                .HasForeignKey(adm => adm.Guid)
-                .OnDelete(DeleteBehavior.Cascade);
+                   .WithOne(note => note.Admission)
+                   .HasForeignKey(adm => adm.Guid)
+                   .OnDelete(DeleteBehavior.Cascade);
             });
 
         }

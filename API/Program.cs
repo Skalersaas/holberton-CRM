@@ -19,6 +19,7 @@ namespace API
             // Repos
             AddRepositories(builder.Services);
 
+            builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
             builder.Services.AddControllers(options =>
             {
                 options.Conventions.Add(new GlobalRoutePrefixConvention());

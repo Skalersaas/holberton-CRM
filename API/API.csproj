@@ -7,6 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
+    <None Remove=".env" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include=".env" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+=======
+>>>>>>> parent of 699593b (modify_userController)
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>

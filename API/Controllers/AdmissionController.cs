@@ -5,20 +5,39 @@ using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
 using Persistance.Data.Repositories;
 using System.Text.Json;
+using Utilities.Services;
 using static Utilities.Services.ResponseGenerator;
 namespace API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AdmissionController(AdmissionManagement management) : CrudController<Admission>(management.Admissions)
+    [ProducesResponseType<DataResponse<Admission>>(StatusCodes.Status200OK)]
+    public class AdmissionController(AdmissionManagement management) : CrudController<Admission, AdmissionDTO>(management.Admissions)
     {
         private readonly IRepository<Admission> context = management.Admissions;
 
+
+        [ProducesResponseType<DataResponse<IEnumerable<Admission>>>(StatusCodes.Status200OK)]
+        public override Task<ObjectResult> GetAll([FromQuery] SearchModel model)
+        {
+            return base.GetAll(model);
+        }
+        [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+        public override async Task<ObjectResult> New([FromBody] AdmissionDTO entity)
+        {
+            if (await management.Students.GetByIdAsync(entity.StudentGuid) == null)
+                return GenerateNotFound("Student with such GUID was not found");
+
+            if (await management.Users.GetByIdAsync(entity.UserGuid) == null)
+                return GenerateNotFound("User with such GUID was not found");
+
+            return await base.New(entity);
+        }
         public override async Task<ObjectResult> Update([FromBody] Admission entity)
         {
             var prev = await context.GetByIdAsync(entity.Guid);
             if (prev == null)
-                return NotFound(GenerateNotFoundResponse(Name, "Guid"));
+                return GenerateNotFound("Admission with such GUID was not found");
 
             context.Detach(prev);
 
@@ -26,17 +45,7 @@ namespace API.Controllers
 
             await context.UpdateAsync(entity);
 
-            return Ok(GenerateSuccessResponse());
-        }
-        public override async Task<ObjectResult> New([FromBody] Admission entity)
-        {
-            if (await management.Students.GetByIdAsync(entity.StudentGuid) == null)
-                return BadRequest(GenerateNotFoundResponse("Student", "Guid"));
-
-            if (await management.Users.GetByIdAsync(entity.UserGuid) == null)
-                return BadRequest(GenerateNotFoundResponse("User", "Guid"));
-
-            return await base.New(entity);
+            return ResponseOK(entity);
         }
         private async Task TrackAndSaveAdmissionChanges(Admission prev, Admission next)
         {

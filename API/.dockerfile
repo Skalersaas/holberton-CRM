@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution and project files
-COPY ["Backend.sln", "./"]
+COPY ["holberton-CRM.sln", "./"]
 COPY ["API/API.csproj", "API/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Persistance/Persistance.csproj", "Persistance/"]

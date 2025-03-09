@@ -5,29 +5,35 @@ using System.Text;
 
 namespace Utilities.Services
 {
-    internal class JWTGenerator
+
+    public class JwtTokenGenerator
     {
-    }
-    public class AuthOptions
-    {
-        public const string ISSUER = "MyAuthServer"; // издатель токена
-        public const string AUDIENCE = "MyAuthClient"; // потребитель токена
-        const string KEY = "mysupersecret_secretsecretsecretkey!123";   // ключ для шифрации
-        public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
-            new(Encoding.UTF8.GetBytes(KEY));
-        public static string GetJWTToken(string userLogin, int userId)
+        public static readonly string _secretKey = 
+            Environment.GetEnvironmentVariable("SecretKey") ?? throw new Exception("SecretKey is not defined");
+        public static readonly string _issuer = "King";
+        public static readonly string _audience = "Soldiers";
+        public static readonly int _lifeTime = 3600;
+        public static string GenerateJwtToken(string username)
         {
-            var claims = new List<Claim>() {
-                new("Id", userId.ToString()),
-                new("Login", userLogin),
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name, username),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
-            var jwt = new JwtSecurityToken(
-                issuer: ISSUER,
-                audience: AUDIENCE,
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _issuer,
+                audience: _audience,
                 claims: claims,
-                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(1)),
-                signingCredentials: new(GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
-            return new JwtSecurityTokenHandler().WriteToken(jwt);
+                expires: DateTime.Now.AddSeconds(_lifeTime),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

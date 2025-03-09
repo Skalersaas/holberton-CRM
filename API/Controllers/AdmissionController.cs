@@ -11,25 +11,25 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [ProducesResponseType<DataResponse<Admission>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiResponse<Admission>>(StatusCodes.Status200OK)]
     public class AdmissionController(AdmissionManagement management) : CrudController<Admission, AdmissionDTO>(management.Admissions)
     {
         private readonly IRepository<Admission> context = management.Admissions;
 
 
-        [ProducesResponseType<DataResponse<IEnumerable<Admission>>>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ApiResponse<IEnumerable<Admission>>>(StatusCodes.Status200OK)]
         public override Task<ObjectResult> GetAll([FromQuery] SearchModel model)
         {
             return base.GetAll(model);
         }
-        [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public override async Task<ObjectResult> New([FromBody] AdmissionDTO entity)
         {
             if (await management.Students.GetByIdAsync(entity.StudentGuid) == null)
-                return GenerateNotFound("Student with such GUID was not found");
+                return ResponseGenerator.NotFound("Student with such GUID was not found");
 
             if (await management.Users.GetByIdAsync(entity.UserGuid) == null)
-                return GenerateNotFound("User with such GUID was not found");
+                return ResponseGenerator.NotFound("User with such GUID was not found");
 
             return await base.New(entity);
         }
@@ -37,7 +37,7 @@ namespace API.Controllers
         {
             var prev = await context.GetByIdAsync(entity.Guid);
             if (prev == null)
-                return GenerateNotFound("Admission with such GUID was not found");
+                return ResponseGenerator.NotFound("Admission with such GUID was not found");
 
             context.Detach(prev);
 
@@ -45,7 +45,7 @@ namespace API.Controllers
 
             await context.UpdateAsync(entity);
 
-            return ResponseOK(entity);
+            return ResponseGenerator.Ok(entity);
         }
         private async Task TrackAndSaveAdmissionChanges(Admission prev, Admission next)
         {

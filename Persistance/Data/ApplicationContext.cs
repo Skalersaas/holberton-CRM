@@ -33,7 +33,10 @@ namespace Persistance.Data
                     });
                 }
             }
-
+            modelBuilder.Entity<User>(user =>
+            {
+                user.HasIndex("Login").IsUnique();
+            });
             modelBuilder.Entity<Admission>(adm =>
             {
                 adm.HasOne(adm => adm.Student)

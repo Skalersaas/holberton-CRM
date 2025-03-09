@@ -1,6 +1,7 @@
 ﻿using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace Persistance.Data.Repositories
 {
@@ -26,9 +27,16 @@ namespace Persistance.Data.Repositories
         {
             _context.Entry(entity).State = EntityState.Detached;
         }
-
         public async Task<T?> GetByIdAsync(Guid id) => await _set.FindAsync(id);
-        public async Task<T?> GetBySlugAsync(string slug) => await _set.Where(x => x.Slug == slug).SingleAsync();
+        public async Task<T?> GetBySlugAsync(string slug) => await _set.FirstOrDefaultAsync(x => x.Slug == slug);
+        public T? GetByField(string fieldName, object value)
+        {
+            var property = typeof(T).GetProperty(fieldName,
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
+                ?? throw new ArgumentNullException(fieldName);
+
+            return _set.AsEnumerable().FirstOrDefault(entity => property.GetValue(entity)?.Equals(value) == true);
+        }
         public async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
         {
             var set = _set.AsQueryable();

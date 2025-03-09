@@ -1,6 +1,6 @@
-﻿using Domain.Models.Interfaces;
+﻿using Domain.Enums;
+using Domain.Models.Interfaces;
 using System.Text.Json.Serialization;
-using Utilities.Enums;
 namespace Domain.Models.Entities
 {
     public class Admission : AdmissionDTO, IModel

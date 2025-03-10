@@ -6,7 +6,6 @@ using Persistance.Data;
 using Persistance.Data.Repositories;
 using System.Text.Json;
 using Utilities.Services;
-using static Utilities.Services.ResponseGenerator;
 namespace API.Controllers
 {
     [ApiController]
@@ -15,7 +14,6 @@ namespace API.Controllers
     public class AdmissionController(AdmissionManagement management) : CrudController<Admission, AdmissionDTO>(management.Admissions)
     {
         private readonly IRepository<Admission> context = management.Admissions;
-
 
         [ProducesResponseType<ApiResponse<IEnumerable<Admission>>>(StatusCodes.Status200OK)]
         public override Task<ObjectResult> GetAll([FromQuery] SearchModel model)

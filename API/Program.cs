@@ -1,12 +1,14 @@
+using System.Text;
 using API.Middleware;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Persistance.Data;
+using Utilities.Services;
+using Microsoft.OpenApi.Models;
+using Persistance.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using Persistance.Data;
-using Persistance.Data.Repositories;
-using System.Text;
-using Utilities.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API
 {
@@ -16,19 +18,66 @@ namespace API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            ConfigureBuilder(builder);
+
+            var app = builder.Build();
+
+            ConfigureApp(app);
+
+            app.Run();
+        }
+        private static void ConfigureBuilder(WebApplicationBuilder builder)
+        {
             // Db
             ConfigureDatabase(builder.Services);
 
+            // Auth
+            ConfigureAuthentification(builder.Services);
+
+            // Routes
+            ConfigureRoutes(builder.Services);
+
+            // Swagger
+            ConfigureSwagger(builder.Services);
+
             // Repos
             AddRepositories(builder.Services);
+            builder.Services.AddAuthorization();
+        }
+        private static void ConfigureApp(WebApplication app)
+        {
 
-            builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
-            builder.Services.AddControllers(options =>
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+            //app.UseMiddleware<RequestLoggingMiddleware>();
+            app.UseRouting();
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
             {
-                options.Conventions.Add(new GlobalRoutePrefixConvention());
-            });
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+            app.UseHttpsRedirection();
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.MapControllers();
+
+        }
+        #region Configures
+        private static void ConfigureDatabase(IServiceCollection services)
+        {
+            EnvLoader.LoadEnvFile(".env");
+            string? cs = Environment.GetEnvironmentVariable("ConnectionString");
+            services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(cs));
+        }
+        private static void AddRepositories(IServiceCollection services)
+        {
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<AdmissionManagement>();
+        }
+        private static void ConfigureAuthentification(IServiceCollection services)
+        {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -40,16 +89,22 @@ namespace API
                         ValidIssuer = JwtTokenGenerator._issuer,
                         ValidAudience = JwtTokenGenerator._audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtTokenGenerator._secretKey)),
-                        ClockSkew = TimeSpan.Zero 
+                        ClockSkew = TimeSpan.Zero
                     };
                 });
-
-            builder.Services.AddControllers();
-            builder.Services.AddAuthorization();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
+        }
+        private static void ConfigureRoutes(IServiceCollection services)
+        {
+            services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+            services.AddControllers(options =>
+            {
+                options.Conventions.Add(new GlobalRoutePrefixConvention());
+            });
+        }
+        private static void ConfigureSwagger(IServiceCollection services)
+        {
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 
@@ -79,35 +134,7 @@ namespace API
                     }
                 });
             });
-            var app = builder.Build();
-
-            //app.UseMiddleware<RequestLoggingMiddleware>();
-            app.UseRouting();
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.MapControllers();
-
-            app.Run();
         }
-        public static void ConfigureDatabase(IServiceCollection services)
-        {
-            EnvLoader.LoadEnvFile(".env");
-            string? cs = Environment.GetEnvironmentVariable("ConnectionString");
-            services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(cs));
-        }
-        public static void AddRepositories(IServiceCollection services)
-        {
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<AdmissionManagement>();
-        }
+        #endregion
     }
 }

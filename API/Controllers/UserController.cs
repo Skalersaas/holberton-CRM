@@ -32,7 +32,7 @@ namespace API.Controllers
             if (created == default)
                 return ResponseGenerator.Conflict("User with such slug exists");
 
-            return ResponseGenerator.Ok(JwtTokenGenerator.GenerateJwtToken(created.Login));
+            return ResponseGenerator.Ok(entity);
         }
 
         [AllowAnonymous]

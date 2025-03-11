@@ -4,12 +4,18 @@ namespace API.Middleware;
 
 public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> logger)
 {
+
+    private static readonly JsonSerializerOptions options = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
     public async Task InvokeAsync(HttpContext context)
     {
         // Log HTTP Request Information
         context.Request.EnableBuffering();
-        var requestInfo = await BuildRequestInfo(context);
-        logger.LogInformation(requestInfo);
+        logger.LogInformation("HTTP Request: {method} {path} \nRequest Body: {body}",
+            context.Request.Method, context.Request.Path, await ReadRequestBodyAsync(context.Request));
 
         var originalResponseBodyStream = context.Response.Body;
         using var responseBodyStream = new MemoryStream();
@@ -34,14 +40,7 @@ public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> 
         }
     }
 
-    private async Task<string> BuildRequestInfo(HttpContext context)
-    {
-        var requestBody = await ReadRequestBodyAsync(context.Request);
-        return $"HTTP Request: {context.Request.Method} {context.Request.Path}" +
-               (string.IsNullOrWhiteSpace(requestBody) ? "" : $"\nRequest Body: {requestBody}");
-    }
-
-    private async Task<string> ReadRequestBodyAsync(HttpRequest request)
+    private static async Task<string> ReadRequestBodyAsync(HttpRequest request)
     {
         if (request.ContentLength == null || request.ContentLength == 0)
             return string.Empty;
@@ -60,13 +59,9 @@ public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> 
 
         if (!context.Request.Path.StartsWithSegments("/swagger"))
         {
-            var responseLog = $"HTTP Response: {context.Response.StatusCode}" +
-                              (string.IsNullOrWhiteSpace(responseText) ? "" : $"\nResponse Body: {FormatJson(responseText)}");
-
-            if (context.Response.StatusCode >= 400)
-                logger.LogError(responseLog);
-            else
-                logger.LogInformation(responseLog);
+            logger.Log(context.Response.StatusCode >= 400 ? LogLevel.Error : LogLevel.Information,
+                "HTTP Reponse: {statusCode} \nResponse Body: {body}",
+                context.Response.StatusCode, FormatJson(responseText));
         }
     }
 
@@ -77,15 +72,11 @@ public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> 
             if (string.IsNullOrWhiteSpace(json)) return json;
 
             var jsonElement = JsonSerializer.Deserialize<JsonElement>(json);
-            return JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
+            return JsonSerializer.Serialize(jsonElement, options);
         }
         catch
         {
-            return json; // Return as is if not valid JSON
+            return json;
         }
     }
 }

@@ -9,13 +9,13 @@ namespace API.Middleware
             {
                 await _next(context);
             }
-            catch (Exception ex)
+            catch
             {
-                await HandleException(context, ex);
+                await HandleException(context);
             }
         }
 
-        private static async Task HandleException(HttpContext context, Exception? ex = null)
+        private static async Task HandleException(HttpContext context)
         {
             if (context.Response.HasStarted)
                 return;

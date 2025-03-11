@@ -7,7 +7,6 @@ using Persistance.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API
@@ -28,6 +27,7 @@ namespace API
         }
         private static void ConfigureBuilder(WebApplicationBuilder builder)
         {
+            EnvLoader.LoadEnvFile(".env");
             // Db
             ConfigureDatabase(builder.Services);
 
@@ -46,27 +46,27 @@ namespace API
         }
         private static void ConfigureApp(WebApplication app)
         {
-
+            app.UseMiddleware<LoggingMiddleware>(); 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
-            //app.UseMiddleware<RequestLoggingMiddleware>();
+
             app.UseRouting();
-            // Configure the HTTP request pipeline.
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseHttpsRedirection();
+
+            app.UseHttpsRedirection(); 
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapControllers();
 
+            app.MapControllers();  
         }
         #region Configures
         private static void ConfigureDatabase(IServiceCollection services)
         {
-            EnvLoader.LoadEnvFile(".env");
             string? cs = Environment.GetEnvironmentVariable("ConnectionString");
             services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(cs));
         }
@@ -86,9 +86,9 @@ namespace API
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = JwtTokenGenerator._issuer,
-                        ValidAudience = JwtTokenGenerator._audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtTokenGenerator._secretKey)),
+                        ValidIssuer = JwtTokenGenerator.Issuer,
+                        ValidAudience = JwtTokenGenerator.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtTokenGenerator.SecretKey)),
                         ClockSkew = TimeSpan.Zero
                     };
                 });
@@ -99,6 +99,10 @@ namespace API
             services.AddControllers(options =>
             {
                 options.Conventions.Add(new GlobalRoutePrefixConvention());
+            });
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
             });
         }
         private static void ConfigureSwagger(IServiceCollection services)

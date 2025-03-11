@@ -1,4 +1,5 @@
-﻿using Domain.Models.Interfaces;
+﻿using API.Middleware;
+using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace API.BaseControllers
 {
     [Authorize]
     [ApiController]
+    [ModelValidation]
     public abstract class CrudController<T, D>(IRepository<T> _context) : 
         ControllerBase where T : class, D, IModel
                        where D : class

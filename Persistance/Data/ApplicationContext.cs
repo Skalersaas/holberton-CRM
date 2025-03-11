@@ -19,7 +19,6 @@ namespace Persistance.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(IModel).IsAssignableFrom(entityType.ClrType))

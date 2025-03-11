@@ -8,8 +8,6 @@ namespace API.Middleware
             try
             {
                 await _next(context);
-                if (context.Response.StatusCode >= 400)
-                    await HandleException(context);
             }
             catch (Exception ex)
             {
@@ -19,9 +17,8 @@ namespace API.Middleware
 
         private static async Task HandleException(HttpContext context, Exception? ex = null)
         {
-            context.Response.ContentType = "application/json";
-
-            Console.WriteLine($"Error occurred: {ex?.Message ?? context.Response.StatusCode.ToString()}");
+            if (context.Response.HasStarted)
+                return;
 
             var response = (context.Response.StatusCode switch
             {
@@ -31,6 +28,7 @@ namespace API.Middleware
                 409 => ResponseGenerator.Conflict(),
                 _ => ResponseGenerator.InternalServerError()
             }).Value;
+
 
             await context.Response.WriteAsJsonAsync(response);
         }

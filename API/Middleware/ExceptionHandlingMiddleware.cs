@@ -11,7 +11,12 @@ namespace API.Middleware
             }
             catch
             {
-                await HandleException(context);
+                context.Response.StatusCode = 500;
+            }
+            finally
+            {
+                if (context.Response.StatusCode >= 400)
+                    await HandleException(context);
             }
         }
 
@@ -19,13 +24,10 @@ namespace API.Middleware
         {
             if (context.Response.HasStarted)
                 return;
-
             var response = (context.Response.StatusCode switch
             {
                 400 => ResponseGenerator.BadRequest(),
                 401 => ResponseGenerator.Unauthorized(),
-                404 => ResponseGenerator.NotFound(),
-                409 => ResponseGenerator.Conflict(),
                 _ => ResponseGenerator.InternalServerError()
             }).Value;
 

@@ -46,10 +46,15 @@ namespace API
         }
         private static void ConfigureApp(WebApplication app)
         {
-            app.UseMiddleware<LoggingMiddleware>(); 
+            app.UseMiddleware<LoggingMiddleware>();
+
+            
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             if (app.Environment.IsDevelopment())
             {
@@ -59,8 +64,6 @@ namespace API
 
             app.UseHttpsRedirection(); 
 
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             app.MapControllers();  
         }

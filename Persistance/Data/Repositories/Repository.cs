@@ -1,6 +1,7 @@
 ﻿using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Persistance.Data.Repositories
@@ -39,7 +40,10 @@ namespace Persistance.Data.Repositories
         }
         public async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
         {
-            var set = _set.AsQueryable();
+            var set = string.IsNullOrEmpty(model.SortedField)
+                ? _set.AsQueryable()
+                : OrderByField(_set, model.SortedField, model.IsAscending);
+
             if (model.Valid())
                 set = set.Skip((model.Page - 1) * model.Size).Take(model.Size);
 
@@ -60,6 +64,21 @@ namespace Persistance.Data.Repositories
             _set.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
+        }
+        private static IQueryable<T> OrderByField(IQueryable<T> source, string fieldName, bool ascending)
+        {
+            var parameter = Expression.Parameter(typeof(T), "x");
+            var property = Expression.Property(parameter, fieldName);
+            var lambda = Expression.Lambda(property, parameter);
+
+            string methodName = ascending ? "OrderBy" : "OrderByDescending";
+
+            var result = typeof(Queryable).GetMethods()
+                .First(m => m.Name == methodName && m.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(T), property.Type)
+                .Invoke(null, [source, lambda]);
+
+            return (IQueryable<T>)result!;
         }
     }
 }

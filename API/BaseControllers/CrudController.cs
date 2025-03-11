@@ -29,8 +29,12 @@ namespace API.BaseControllers
                 : ResponseGenerator.NotFound("Entity with such GUID was not found");
         }
         [HttpGet("all")]
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status400BadRequest)]
         public virtual async Task<ObjectResult> GetAll([FromQuery] SearchModel model)
         {
+            if (typeof(T).GetProperty(model.SortedField) == null)
+                return ResponseGenerator.BadRequest();
+            
             return ResponseGenerator.Ok(await _context.GetAllAsync(model));
         }
         [HttpPost("new")]

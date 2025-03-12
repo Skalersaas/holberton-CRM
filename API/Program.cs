@@ -27,7 +27,9 @@ namespace API
         }
         private static void ConfigureBuilder(WebApplicationBuilder builder)
         {
+#if DEBUG
             EnvLoader.LoadEnvFile(".env");
+#endif
             // Db
             ConfigureDatabase(builder.Services);
 

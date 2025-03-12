@@ -1,11 +1,13 @@
 ﻿using API.BaseControllers;
 using Domain.Models.Entities;
 using Domain.Models.JsonTemplates;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
 
 namespace API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     [ProducesResponseType<ApiResponse<Student>>(StatusCodes.Status200OK)]

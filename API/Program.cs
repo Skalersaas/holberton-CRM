@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace API
 {
@@ -48,6 +49,9 @@ namespace API
         }
         private static void ConfigureApp(WebApplication app)
         {
+            app.UseRewriter(new RewriteOptions()
+                .AddRedirect("^$", "swagger/index.html"));
+
             app.UseMiddleware<LoggingMiddleware>();
 
             

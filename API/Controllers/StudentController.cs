@@ -7,7 +7,6 @@ using Persistance.Data;
 
 namespace API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("[controller]")]
     [ProducesResponseType<ApiResponse<Student>>(StatusCodes.Status200OK)]

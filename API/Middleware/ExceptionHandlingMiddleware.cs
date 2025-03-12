@@ -9,7 +9,7 @@ namespace API.Middleware
             {
                 await _next(context);
             }
-            catch
+            catch 
             {
                 context.Response.StatusCode = 500;
             }
@@ -24,14 +24,17 @@ namespace API.Middleware
         {
             if (context.Response.HasStarted)
                 return;
+
             var response = (context.Response.StatusCode switch
             {
                 400 => ResponseGenerator.BadRequest(),
                 401 => ResponseGenerator.Unauthorized(),
+                404 => ResponseGenerator.NotFound(),
+                409 => ResponseGenerator.Conflict(),
                 _ => ResponseGenerator.InternalServerError()
             }).Value;
 
-
+            if (context.Response.Body.Length == 0)
             await context.Response.WriteAsJsonAsync(response);
         }
     }

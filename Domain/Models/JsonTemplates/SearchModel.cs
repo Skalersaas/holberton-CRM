@@ -1,4 +1,6 @@
-﻿
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace Domain.Models.JsonTemplates
 {
     public class SearchModel
@@ -7,6 +9,8 @@ namespace Domain.Models.JsonTemplates
         public int Page {  get; set; }
         public string SortedField { get; set; } = string.Empty;
         public bool IsAscending {  get; set; }
-        public bool Valid() => Size > 0 && Page > 0; 
+        public string FilteredField { get; set; } = string.Empty;
+        public string Filter { get; set; } = string.Empty;
+        public bool PaginationValid() => Size > 0 && Page > 0; 
     }
 }

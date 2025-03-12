@@ -9,6 +9,7 @@ namespace API.Middleware
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            Console.WriteLine(context.ModelState.IsValid);
             if (!context.ModelState.IsValid)
                 context.Result = ResponseGenerator.BadRequest("Invalid data");
         }   

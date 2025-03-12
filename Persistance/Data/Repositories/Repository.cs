@@ -40,14 +40,17 @@ namespace Persistance.Data.Repositories
         }
         public async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
         {
-            var set = string.IsNullOrEmpty(model.SortedField)
-                ? _set.AsQueryable()
-                : OrderByField(_set, model.SortedField, model.IsAscending);
+            var query = _set.AsQueryable();
 
-            if (model.Valid())
-                set = set.Skip((model.Page - 1) * model.Size).Take(model.Size);
+            if (!string.IsNullOrEmpty(model.FilteredField))
+                FilterByField(query, model.FilteredField, model.Filter);
 
-            return await set.ToListAsync();
+            OrderByField(query, model.SortedField, model.IsAscending);
+
+            if (model.PaginationValid())
+                query = query.Skip(model.Size * (model.Page - 1)).Take(model.Size);
+
+            return await query.ToListAsync();
         }
         public async Task UpdateAsync(T entity)
         {
@@ -71,8 +74,7 @@ namespace Persistance.Data.Repositories
             var property = Expression.Property(parameter, fieldName);
             var lambda = Expression.Lambda(property, parameter);
 
-            string methodName = ascending ? "OrderBy" : "OrderByDescending";
-
+            var methodName = ascending ? "OrderBy" : "OrderByDescending";
             var result = typeof(Queryable).GetMethods()
                 .First(m => m.Name == methodName && m.GetParameters().Length == 2)
                 .MakeGenericMethod(typeof(T), property.Type)
@@ -80,5 +82,23 @@ namespace Persistance.Data.Repositories
 
             return (IQueryable<T>)result!;
         }
+
+        private static IQueryable<T> FilterByField(IQueryable<T> source, string fieldName, object value)
+        {
+            var parameter = Expression.Parameter(typeof(T), "x");
+            Expression property = Expression.Property(parameter, fieldName);
+
+            if (property.Type != typeof(string))
+                property = Expression.Call(property, typeof(object).GetMethod("ToString")!);
+
+            var constant = Expression.Constant(value.ToString());
+
+            var containsMethod = typeof(string).GetMethod("Contains", [typeof(string)]);
+            var condition = Expression.Call(property, containsMethod!, constant);
+
+            var lambda = Expression.Lambda<Func<T, bool>>(condition, parameter);
+            return source.Where(lambda);
+        }
+
     }
 }

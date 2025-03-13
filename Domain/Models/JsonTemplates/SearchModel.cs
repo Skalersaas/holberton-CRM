@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace Domain.Models.JsonTemplates
+﻿namespace Domain.Models.JsonTemplates
 {
     public class SearchModel
     {

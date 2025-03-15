@@ -1,4 +1,5 @@
-﻿using Utilities.Services;
+﻿using Application.Services;
+
 namespace API.Middleware
 {
     public class ExceptionHandlingMiddleware(RequestDelegate _next)
@@ -9,9 +10,9 @@ namespace API.Middleware
             {
                 await _next(context);
             }
-            catch 
+            catch (Exception ex) 
             {
-                context.Response.StatusCode = 500;
+                await HandleException(context, ex);
             }
             finally
             {
@@ -20,22 +21,25 @@ namespace API.Middleware
             }
         }
 
+        private static async Task HandleException(HttpContext context, Exception ex)
+        {
+            await
+#if DEBUG
+    context.Response.WriteAsJsonAsync(ResponseGenerator.Error(ex.Message, 500));
+#else
+    context.Response.WriteAsJsonAsync(ResponseGenerator.Error("Internal server error", 500));
+#endif
+        }
         private static async Task HandleException(HttpContext context)
         {
-            if (context.Response.HasStarted)
-                return;
+            if (context.Response.HasStarted || context.Response.ContentLength > 0) return;
 
-            var response = (context.Response.StatusCode switch
+            await context.Response.WriteAsJsonAsync((context.Response.StatusCode switch
             {
-                400 => ResponseGenerator.BadRequest(),
                 401 => ResponseGenerator.Unauthorized(),
-                404 => ResponseGenerator.NotFound(),
-                409 => ResponseGenerator.Conflict(),
+                429 => ResponseGenerator.TooManyRequests(),
                 _ => ResponseGenerator.InternalServerError()
-            }).Value;
-
-            if (context.Response.Body.Length == 0)
-            await context.Response.WriteAsJsonAsync(response);
+            }).Value);
         }
     }
 }

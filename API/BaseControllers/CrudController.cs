@@ -4,6 +4,7 @@ using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
+using System.Reflection;
 using Utilities.Services;
 
 namespace API.BaseControllers
@@ -30,11 +31,14 @@ namespace API.BaseControllers
         }
         [HttpGet("all")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ObjectResult> GetAll([FromQuery] SearchModel model)
+        public virtual async Task<ObjectResult> GetAll([FromBody] SearchModel model)
         {
-            if (typeof(T).GetProperty(model.SortedField) == null)
+            if (!string.IsNullOrWhiteSpace(model.SortedField) &&
+                typeof(T).GetProperty(model.SortedField, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance) == null)
+            {
                 return ResponseGenerator.BadRequest();
-            
+            }
+
             return ResponseGenerator.Ok(await _context.GetAllAsync(model));
         }
         [HttpPost("new")]

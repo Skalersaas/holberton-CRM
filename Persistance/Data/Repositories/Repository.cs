@@ -1,4 +1,5 @@
-﻿using Domain.Models.Interfaces;
+﻿using Domain.Models.Entities;
+using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -42,8 +43,19 @@ namespace Persistance.Data.Repositories
         {
             var query = _set.AsQueryable();
 
-            if (!string.IsNullOrEmpty(model.FilteredField))
-                FilterByField(query, model.FilteredField, model.Filter);
+            if (string.IsNullOrWhiteSpace(model.SortedField) && typeof(T) == typeof(Admission))
+            {
+                model.SortedField = nameof(Admission.ApplyDate);
+                model.IsAscending = true;
+            }
+
+            if (model.Filters != null && model.Filters.Any())
+            {
+                foreach (var filter in model.Filters)
+                {
+                    query = FilterByField(query, filter.Key, filter.Value);
+                }
+            }
 
             OrderByField(query, model.SortedField, model.IsAscending);
 
@@ -70,6 +82,9 @@ namespace Persistance.Data.Repositories
         }
         private static IQueryable<T> OrderByField(IQueryable<T> source, string fieldName, bool ascending)
         {
+            if (string.IsNullOrWhiteSpace(fieldName))
+                return source;
+
             var parameter = Expression.Parameter(typeof(T), "x");
             var property = Expression.Property(parameter, fieldName);
             var lambda = Expression.Lambda(property, parameter);
@@ -99,6 +114,5 @@ namespace Persistance.Data.Repositories
             var lambda = Expression.Lambda<Func<T, bool>>(condition, parameter);
             return source.Where(lambda);
         }
-
     }
 }

@@ -56,7 +56,7 @@ namespace API.Controllers
             using var stream = new MemoryStream();
             await file.CopyToAsync(stream);
 
-            var students = ExcelParser.ParseStudentsFromExcel(stream);
+            var students = ExcelParser.ParseFromExcel<Student>(stream);
 
             return Ok(ResponseGenerator.Ok(students));
         }

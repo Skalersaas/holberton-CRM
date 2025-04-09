@@ -95,6 +95,25 @@ namespace API.Controllers
                 ? ResponseGenerator.NotFound("User not found")
                 : ResponseGenerator.Ok(user);
         }
+
+        [Consumes("multipart/form-data")]
+        [HttpPost("upload-file")]
+        [ProducesResponseType<ApiResponse<IEnumerable<User>>>(StatusCodes.Status200OK)]
+        public async Task<ObjectResult> UploadFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty.");
+
+            if (!file.FileName.EndsWith(".xlsx"))
+                return BadRequest("Only .xlsx format is allowed.");
+
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+
+            var users = ExcelParser.ParseFromExcel<User>(stream);
+
+            return Ok(ResponseGenerator.Ok(users));
+        }
     }
 
 }

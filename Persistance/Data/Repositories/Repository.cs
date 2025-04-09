@@ -1,5 +1,4 @@
-﻿using Domain.Models.Entities;
-using Domain.Models.Interfaces;
+﻿using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -42,15 +41,8 @@ namespace Persistance.Data.Repositories
         {
             var query = _set.AsQueryable();
 
-            if (model.Filters != null && model.Filters.Any())
-            {
-                query = FilterByFields(query, model.Filters); // Apply all filters together
-            }
-
-            if (!string.IsNullOrWhiteSpace(model.SortedField))
-            {
-                query = OrderByField(query, model.SortedField, model.IsAscending);
-            }
+            query = FilterByFields(query, model.Filters);
+            query = OrderByField(query, model.SortedField, model.IsAscending);
 
             if (model.PaginationValid())
                 query = query.Skip(model.Size * (model.Page - 1)).Take(model.Size);
@@ -92,6 +84,9 @@ namespace Persistance.Data.Repositories
         }
         private static IQueryable<T> FilterByFields(IQueryable<T> source, Dictionary<string, string> filters)
         {
+            if (filters == null || filters.Count == 0)
+                return source;
+
             var parameter = Expression.Parameter(typeof(T), "x");
             Expression? combinedExpression = null;
 
@@ -114,7 +109,7 @@ namespace Persistance.Data.Repositories
                 Expression condition;
                 if (property.PropertyType == typeof(string))
                 {
-                    var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
+                    var containsMethod = typeof(string).GetMethod("Contains", [typeof(string)])!;
                     condition = Expression.Call(propertyExpression, containsMethod, constant);
                 }
                 else

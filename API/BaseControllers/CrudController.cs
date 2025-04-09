@@ -4,7 +4,6 @@ using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
-using System.Reflection;
 using Utilities.Services;
 
 namespace API.BaseControllers
@@ -12,16 +11,11 @@ namespace API.BaseControllers
     [Authorize]
     [ApiController]
     [ModelValidation]
-    public abstract class CrudController<T, D>: 
+    public abstract class CrudController<T, D>(IRepository<T> context) : 
         ControllerBase where T : class, D, IModel
                        where D : class
     {
-        protected readonly IRepository<T> _context;
-
-        public CrudController(IRepository<T> context)
-        {
-            _context = context;
-        }
+        protected readonly IRepository<T> _context = context;
 
         [HttpGet("{slug}")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]

@@ -41,7 +41,7 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
         public ObjectResult Login([FromBody] LoginRequest request)
         {
-            var user = _users.GetByField("login", request.Login);
+            var user = _users.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
             if (user == null)
                 return ResponseGenerator.NotFound("User not found");
 
@@ -67,7 +67,7 @@ namespace API.Controllers
         [HttpPost("changepassword")]
         public async Task<ObjectResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            var user = _users.GetByField("login", request.Login);
+            var user = _users.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
             if (user == null)
                 return ResponseGenerator.NotFound("User not found");
 
@@ -90,7 +90,7 @@ namespace API.Controllers
             if (string.IsNullOrEmpty(login))
                 return ResponseGenerator.Unauthorized();
 
-            var user = _users.GetByField("login", login);
+            var user = _users.GetByField(nameof(Domain.Models.Entities.User.Login), login);
             return user == null
                 ? ResponseGenerator.NotFound("User not found")
                 : ResponseGenerator.Ok(user);

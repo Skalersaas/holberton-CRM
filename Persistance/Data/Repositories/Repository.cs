@@ -24,7 +24,6 @@ namespace Persistance.Data.Repositories
                 return default;
             }
         }
-        
         public void Detach(T entity)
         {
             _context.Entry(entity).State = EntityState.Detached;
@@ -39,25 +38,19 @@ namespace Persistance.Data.Repositories
 
             return _set.AsEnumerable().FirstOrDefault(entity => property.GetValue(entity)?.Equals(value) == true);
         }
-        public async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
         {
             var query = _set.AsQueryable();
 
-            if (string.IsNullOrWhiteSpace(model.SortedField) && typeof(T) == typeof(Admission))
-            {
-                model.SortedField = nameof(Admission.ApplyDate);
-                model.IsAscending = true;
-            }
-
             if (model.Filters != null && model.Filters.Any())
             {
-                foreach (var filter in model.Filters)
-                {
-                    query = FilterByField(query, filter.Key, filter.Value);
-                }
+                query = FilterByFields(query, model.Filters); // Apply all filters together
             }
 
-            OrderByField(query, model.SortedField, model.IsAscending);
+            if (!string.IsNullOrWhiteSpace(model.SortedField))
+            {
+                query = OrderByField(query, model.SortedField, model.IsAscending);
+            }
 
             if (model.PaginationValid())
                 query = query.Skip(model.Size * (model.Page - 1)).Take(model.Size);
@@ -97,22 +90,50 @@ namespace Persistance.Data.Repositories
 
             return (IQueryable<T>)result!;
         }
-
-        private static IQueryable<T> FilterByField(IQueryable<T> source, string fieldName, object value)
+        private static IQueryable<T> FilterByFields(IQueryable<T> source, Dictionary<string, string> filters)
         {
             var parameter = Expression.Parameter(typeof(T), "x");
-            Expression property = Expression.Property(parameter, fieldName);
+            Expression? combinedExpression = null;
 
-            if (property.Type != typeof(string))
-                property = Expression.Call(property, typeof(object).GetMethod("ToString")!);
+            foreach (var filter in filters)
+            {
+                var property = typeof(T).GetProperty(filter.Key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
-            var constant = Expression.Constant(value.ToString());
+                if (property == null)
+                    continue;
 
-            var containsMethod = typeof(string).GetMethod("Contains", [typeof(string)]);
-            var condition = Expression.Call(property, containsMethod!, constant);
+                Expression propertyExpression = Expression.Property(parameter, property);
 
-            var lambda = Expression.Lambda<Func<T, bool>>(condition, parameter);
+                if (property.PropertyType != typeof(string))
+                {
+                    propertyExpression = Expression.Call(propertyExpression, typeof(object).GetMethod("ToString")!);
+                }
+
+                var constant = Expression.Constant(filter.Value);
+
+                Expression condition;
+                if (property.PropertyType == typeof(string))
+                {
+                    var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
+                    condition = Expression.Call(propertyExpression, containsMethod, constant);
+                }
+                else
+                {
+                    condition = Expression.Equal(propertyExpression, constant);
+                }
+
+                combinedExpression = combinedExpression == null
+                    ? condition
+                    : Expression.AndAlso(combinedExpression, condition);
+            }
+
+            if (combinedExpression == null)
+                return source;
+
+            var lambda = Expression.Lambda<Func<T, bool>>(combinedExpression, parameter);
+
             return source.Where(lambda);
         }
+
     }
 }

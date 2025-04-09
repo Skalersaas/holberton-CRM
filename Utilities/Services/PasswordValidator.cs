@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utilities.Services
 {
@@ -12,28 +9,21 @@ namespace Utilities.Services
         {
             error = string.Empty;
 
-            if (password.Length < 5)
+            var rules = new (Func<string, bool> condition, string errorMessage)[]
             {
-                error = "Password must be at least 5 characters.";
-                return false;
-            }
+                (p => p.Length >= 5, "Password must be at least 5 characters."),
+                (p => p.Any(char.IsUpper), "Password must contain at least one uppercase letter."),
+                (p => p.Any(char.IsDigit), "Password must contain at least one digit."),
+                (p => p.Any(c => !char.IsLetterOrDigit(c)), "Password must contain at least one symbol.")
+            };
 
-            if (!password.Any(char.IsUpper))
+            foreach (var rule in rules)
             {
-                error = "Password must contain at least one uppercase letter.";
-                return false;
-            }
-
-            if (!password.Any(char.IsDigit))
-            {
-                error = "Password must contain at least one digit.";
-                return false;
-            }
-
-            if (!password.Any(c => !char.IsLetterOrDigit(c)))
-            {
-                error = "Password must contain at least one symbol.";
-                return false;
+                if (!rule.condition(password))
+                {
+                    error = rule.errorMessage;
+                    return false;
+                }
             }
 
             return true;

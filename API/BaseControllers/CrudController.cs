@@ -4,6 +4,7 @@ using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
+using System.Reflection;
 using Utilities.Services;
 
 namespace API.BaseControllers
@@ -11,10 +12,17 @@ namespace API.BaseControllers
     [Authorize]
     [ApiController]
     [ModelValidation]
-    public abstract class CrudController<T, D>(IRepository<T> _context) : 
+    public abstract class CrudController<T, D>: 
         ControllerBase where T : class, D, IModel
                        where D : class
     {
+        protected readonly IRepository<T> _context;
+
+        public CrudController(IRepository<T> context)
+        {
+            _context = context;
+        }
+
         [HttpGet("{slug}")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public virtual async Task<ObjectResult> GetById(string slug)
@@ -28,14 +36,12 @@ namespace API.BaseControllers
                 ? ResponseGenerator.Ok(entity)
                 : ResponseGenerator.NotFound("Entity with such GUID was not found");
         }
-        [HttpGet("all")]
+        [HttpPost("all")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ObjectResult> GetAll([FromQuery] SearchModel model)
+        public virtual async Task<ObjectResult> GetAll([FromBody] SearchModel model)
         {
-            if (typeof(T).GetProperty(model.SortedField) == null)
-                return ResponseGenerator.BadRequest();
-            
-            return ResponseGenerator.Ok(await _context.GetAllAsync(model));
+            var result = await _context.GetAllAsync(model);
+            return ResponseGenerator.Ok(result);
         }
         [HttpPost("new")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status409Conflict)]

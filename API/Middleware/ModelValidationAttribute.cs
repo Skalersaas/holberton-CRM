@@ -10,7 +10,10 @@ namespace API.Middleware
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             if (!context.ModelState.IsValid)
-                context.Result = ResponseGenerator.BadRequest("Invalid data");
+            {
+                var fieldErrors = ModelErrorExtractor.ExtractFieldErrors(context.ModelState);
+                context.Result = ResponseGenerator.FieldErrors(fieldErrors);
+            }
         }   
     }
 }

@@ -76,9 +76,11 @@ namespace API.Controllers
             }
             var aChange = new AdmissionChange()
             {
+                Guid = Guid.NewGuid(),
                 AdmissionGuid = prev.Guid,
                 ChangedAt = DateTime.UtcNow,
-                Data = JsonSerializer.SerializeToDocument(changes)
+                Data = JsonSerializer.SerializeToDocument(changes),
+                Admission = next
             };
 
             await management.AdmissionChanges.CreateAsync(aChange);

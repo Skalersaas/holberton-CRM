@@ -18,6 +18,12 @@ namespace Utilities.Services
             return new(response) { StatusCode = statusCode };
         }
 
+        public static ObjectResult FieldErrors(List<FieldError> errors)
+        {
+            var response = ApiResponse<List<FieldError>>.FieldErrorResponse(errors);
+            return new(response) { StatusCode = StatusCodes.Status400BadRequest };
+        }
+
         public static ObjectResult Ok<T>(T? data)
             => Success(data);
 

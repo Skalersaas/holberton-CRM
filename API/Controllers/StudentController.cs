@@ -3,9 +3,6 @@ using Domain.Models.Entities;
 using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
-using Persistance.Data.Repositories;
-using System.Linq;
-using System.Threading.Tasks;
 using Utilities.Services;
 
 namespace API.Controllers

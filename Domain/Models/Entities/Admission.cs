@@ -10,7 +10,7 @@ namespace Domain.Models.Entities
         
         [JsonIgnore]
         public Student Student { get; set; } = new();
-        
+
         [JsonIgnore]
         public User User { get; set; } = new();
 

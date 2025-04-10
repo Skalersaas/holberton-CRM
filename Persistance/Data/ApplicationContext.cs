@@ -38,19 +38,19 @@ namespace Persistance.Data
             });
             modelBuilder.Entity<Admission>(adm =>
             {
-                adm.HasOne(adm => adm.Student)
-                    .WithMany()
-                    .HasForeignKey(adm => adm.StudentGuid)
-                    .IsRequired();
+                adm.HasOne(a => a.Student)
+                   .WithMany(s => s.Admissions)
+                   .HasForeignKey(a => a.StudentGuid)
+                   .OnDelete(DeleteBehavior.Cascade);
 
-                adm.HasOne(adm => adm.User)
+                adm.HasOne(a => a.User)
                    .WithMany()
-                   .HasForeignKey(adm => adm.UserGuid) 
+                   .HasForeignKey(a => a.UserGuid)
                    .IsRequired();
 
-                adm.HasMany(adm => adm.Notes)
-                   .WithOne(note => note.Admission)
-                   .HasForeignKey(adm => adm.Guid)
+                adm.HasMany(a => a.Notes)
+                   .WithOne(n => n.Admission)
+                   .HasForeignKey(n => n.AdmissionGuid)
                    .OnDelete(DeleteBehavior.Cascade);
             });
 

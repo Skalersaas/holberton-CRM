@@ -7,6 +7,9 @@ namespace Domain.Models.Entities
     {
         [JsonPropertyName("id")]
         public Guid Guid { get; set; }
+
+        [JsonIgnore]
+        public ICollection<Admission> Admissions { get; set; } = new List<Admission>();
     }
     public class StudentDTO 
     {

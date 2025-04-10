@@ -77,6 +77,7 @@ namespace API.Controllers
             var aChange = new AdmissionChange()
             {
                 AdmissionGuid = prev.Guid,
+                ChangedAt = DateTime.UtcNow,
                 Data = JsonSerializer.SerializeToDocument(changes)
             };
 
@@ -100,6 +101,32 @@ namespace API.Controllers
             var admissions = ExcelParser.ParseFromExcel<Admission>(stream);
 
             return Ok(ResponseGenerator.Ok(admissions));
+        }
+        
+        [HttpGet("admission-history/{slug}")]
+        [ProducesResponseType(typeof(ApiResponse<List<AdmissionChangeDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetAdmissionHistoryBySlug(string slug)
+        {
+            var admission = await management.Admissions.GetBySlugAsync(slug);
+            if (admission == null)
+                return NotFound(ResponseGenerator.Error("Admission with the specified slug was not found."));
+
+            var changes = await management.AdmissionChanges
+                .GetAllAsync(new SearchModel
+                {
+                    
+                });
+
+            var result = changes.OrderByDescending(c => c.ChangedAt)
+                .Select(change => new AdmissionChangeDto
+                {
+                    ChangedAt = change.ChangedAt,
+                    Changes = JsonSerializer.Deserialize<List<ChangeTemplateDto>>(change.Data)
+                })
+                .ToList();
+
+            return Ok(ResponseGenerator.Ok(result));
         }
 
     }

@@ -13,5 +13,17 @@ namespace Domain.Models.Entities
         public string Slug { get; set; } = string.Empty;
         public Admission Admission { get; set; } = new();
         public JsonDocument Data { get; set; }
+        public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
     }
+
+    public class AdmissionChangeDto
+    {
+        public DateTime ChangedAt { get; set; }
+        public List<ChangeTemplateDto> Changes { get; set; } = new();
+    }
+    public record ChangeTemplateDto(
+        string Field = "",
+        string OldValue = "",
+        string NewValue = ""
+    );
 }

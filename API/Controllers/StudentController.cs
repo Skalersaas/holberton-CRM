@@ -12,7 +12,7 @@ namespace API.Controllers
     [ProducesResponseType<ApiResponse<Student>>(StatusCodes.Status200OK)]
     public class StudentController(IRepository<Student> context, IRepository<Admission> admissionRepository) : CrudController<Student, StudentDTO>(context)
     {
-        private readonly IRepository<Admission> _admissionRepository = admissionRepository;
+        private readonly IRepository<Admission> _admissions = admissionRepository;
 
         [ProducesResponseType<ApiResponse<IEnumerable<Student>>>(StatusCodes.Status200OK)]
         public override Task<ObjectResult> GetAll([FromBody] SearchModel model)
@@ -26,7 +26,7 @@ namespace API.Controllers
         {
             var allStudents = await _context.GetAllAsync(new SearchModel());
 
-            var admittedStudents = await _admissionRepository.GetAllAsync(new SearchModel());
+            var admittedStudents = await _admissions.GetAllAsync(new SearchModel());
 
             var noAdmissionStudents = allStudents.Where(s => !admittedStudents.Any(a => a.StudentGuid == s.Id));
 
@@ -51,6 +51,5 @@ namespace API.Controllers
 
             return Ok(ResponseGenerator.Ok(students));
         }
-
     }
 }

@@ -9,9 +9,10 @@ namespace Domain.Models.Entities
         public Guid Id { get; set; }
 
         [JsonPropertyName("admissionId")]
-        public Guid AdmissionGuid { get; set; }
+        public Guid AdmissionId { get; set; }
         public string Slug { get; set; } = string.Empty;
-        public Admission Admission { get; set; } = new();
+        public Admission? Admission { get; set; } = null;
+        public DateTime CreatedTime { get; set; }
         public JsonDocument Data { get; set; }
     }
 }

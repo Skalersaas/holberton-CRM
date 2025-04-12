@@ -12,10 +12,10 @@ namespace Domain.Models.Entities
         public Guid Id { get; set; }
         
         [JsonIgnore]
-        public Student Student { get; set; } = new();
+        public Student? Student { get; set; }
         
         [JsonIgnore]
-        public User User { get; set; } = new();
+        public User? User { get; set; }
 
         [JsonIgnore]
         public List<AdmissionNote> Notes { get; set; } = [];

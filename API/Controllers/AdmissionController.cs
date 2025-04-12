@@ -21,14 +21,20 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public override async Task<ObjectResult> New([FromBody] AdmissionDTO entity)
         {
-            if (await management.Students.GetByIdAsync(entity.StudentGuid) == null)
-                return ResponseGenerator.NotFound("Student with such GUID was not found");
+            var student = await management.Students.GetBySlugAsync(entity.StudentSlug);
+            var user = await management.Users.GetBySlugAsync(entity.UserSlug);
+            if (student is null)
+                return ResponseGenerator.NotFound("Student with such SLUG was not found");
 
-            if (await management.Users.GetByIdAsync(entity.UserGuid) == null)
-                return ResponseGenerator.NotFound("User with such GUID was not found");
+            if (user is null)
+                return ResponseGenerator.NotFound("User with such SLUG was not found");
+
+            entity.StudentGuid = student.Id;
+            entity.UserGuid = user.Id;
 
             return await base.New(entity);
         }
+
         public override async Task<ObjectResult> Update([FromBody] Admission entity)
         {
             var prev = await _context.GetByIdAsync(entity.Id);
@@ -42,6 +48,18 @@ namespace API.Controllers
             await _context.UpdateAsync(entity);
 
             return ResponseGenerator.Ok(entity);
+        }
+        [HttpGet("history")]
+        public async Task<ObjectResult> History([FromQuery] Guid id)
+        {
+            var changes = await management.AdmissionChanges.GetAllAsync(new SearchModel()
+            {
+                Filters = new Dictionary<string, string>()
+                {
+                    { nameof(AdmissionChange.AdmissionId), id.ToString() }
+                }
+            });
+            return ResponseGenerator.Ok(changes);
         }
         private async Task TrackAndSaveAdmissionChanges(Admission prev, Admission next)
         {
@@ -73,8 +91,9 @@ namespace API.Controllers
             }
             var aChange = new AdmissionChange()
             {
-                AdmissionGuid = prev.Id,
-                Data = JsonSerializer.SerializeToDocument(changes)
+                AdmissionId = prev.Id,
+                Data = JsonSerializer.SerializeToDocument(changes),
+                CreatedTime = DateTime.UtcNow
             };
 
             await management.AdmissionChanges.CreateAsync(aChange);

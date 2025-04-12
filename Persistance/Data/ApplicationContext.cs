@@ -41,7 +41,8 @@ namespace Persistance.Data
                 adm.HasOne(adm => adm.Student)
                     .WithMany()
                     .HasForeignKey(adm => adm.StudentGuid)
-                    .IsRequired();
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 adm.HasOne(adm => adm.User)
                    .WithMany()

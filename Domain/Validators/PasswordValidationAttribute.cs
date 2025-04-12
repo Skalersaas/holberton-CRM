@@ -1,10 +1,18 @@
-﻿namespace Utilities.Services
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Domain.Validators
 {
-    public static class PasswordValidator
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
+    public class PasswordValidationAttribute : ValidationAttribute
     {
-        public static bool IsValid(string password, out string error)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            error = string.Empty;
+            var password = value as string;
+
+            if (string.IsNullOrEmpty(password))
+            {
+                return new ValidationResult("Password is required.");
+            }
 
             var rules = new (Func<string, bool> condition, string errorMessage)[]
             {
@@ -18,12 +26,11 @@
             {
                 if (!condition(password))
                 {
-                    error = errorMessage;
-                    return false;
+                    return new ValidationResult(errorMessage);
                 }
             }
 
-            return true;
+            return ValidationResult.Success;
         }
     }
 }

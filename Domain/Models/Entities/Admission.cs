@@ -1,6 +1,9 @@
 ﻿using Domain.Enums;
 using Domain.Models.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using static Domain.ConstantErrorMessages;
+
 namespace Domain.Models.Entities
 {
     public class Admission : AdmissionDTO, IModel
@@ -26,6 +29,7 @@ namespace Domain.Models.Entities
         public Guid UserGuid { get; set; }
         public string UserSlug { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = FieldRequired)]
         public string Program { get; set; } = string.Empty;
         public AdmissionStatus Status { get; set; }
         public DateTime ApplyDate { get; set; }

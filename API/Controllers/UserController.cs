@@ -23,9 +23,6 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<string>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> New([FromBody] UserDTO entity)
         {
-            if (!PasswordValidator.IsValid(entity.Password, out var msg))
-                return ResponseGenerator.BadRequest(msg);
-
             var user = Mapper.FromDTO<User, UserDTO>(entity);
             user.Password = PasswordHashGenerator.GenerateHash(entity.Password);
 
@@ -73,9 +70,6 @@ namespace API.Controllers
 
             if (!PasswordHashGenerator.VerifyPassword(user.Password, request.OldPassword))
                 return ResponseGenerator.BadRequest("Old password is incorrect");
-
-            if (!PasswordValidator.IsValid(request.NewPassword, out var msg))
-                return ResponseGenerator.BadRequest(msg);
 
             user.Password = PasswordHashGenerator.GenerateHash(request.NewPassword);
             await _context.UpdateAsync(user);

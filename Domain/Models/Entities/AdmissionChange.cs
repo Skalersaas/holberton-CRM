@@ -6,7 +6,7 @@ namespace Domain.Models.Entities
     public class AdmissionChange : IModel
     {
         [JsonPropertyName("id")]
-        public Guid Guid { get; set; }
+        public Guid Id { get; set; }
 
         [JsonPropertyName("admissionId")]
         public Guid AdmissionGuid { get; set; }

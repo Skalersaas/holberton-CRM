@@ -8,7 +8,7 @@ namespace Domain.Models.Entities
     public class User : UserDTO, IModel
     {
         [JsonPropertyName("id")]
-        public Guid Guid { get; set; }
+        public Guid Id { get; set; }
 
     }
     public class UserDTO

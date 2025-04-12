@@ -3,9 +3,6 @@ using Domain.Models.Entities;
 using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Mvc;
 using Persistance.Data;
-using Persistance.Data.Repositories;
-using System.Linq;
-using System.Threading.Tasks;
 using Utilities.Services;
 
 namespace API.Controllers
@@ -13,18 +10,12 @@ namespace API.Controllers
     [ApiController]
     [Route("[controller]")]
     [ProducesResponseType<ApiResponse<Student>>(StatusCodes.Status200OK)]
-    public class StudentController : CrudController<Student, StudentDTO>
+    public class StudentController(IRepository<Student> context, IRepository<Admission> admissionRepository) : CrudController<Student, StudentDTO>(context)
     {
-        private readonly IRepository<Admission> _admissionRepository;
-
-        public StudentController(IRepository<Student> context, IRepository<Admission> admissionRepository)
-            : base(context) 
-        {
-            _admissionRepository = admissionRepository;
-        }
+        private readonly IRepository<Admission> _admissionRepository = admissionRepository;
 
         [ProducesResponseType<ApiResponse<IEnumerable<Student>>>(StatusCodes.Status200OK)]
-        public override Task<ObjectResult> GetAll([FromQuery] SearchModel model)
+        public override Task<ObjectResult> GetAll([FromBody] SearchModel model)
         {
             return base.GetAll(model);
         }
@@ -37,7 +28,7 @@ namespace API.Controllers
 
             var admittedStudents = await _admissionRepository.GetAllAsync(new SearchModel());
 
-            var noAdmissionStudents = allStudents.Where(s => !admittedStudents.Any(a => a.StudentGuid == s.Guid));
+            var noAdmissionStudents = allStudents.Where(s => !admittedStudents.Any(a => a.StudentGuid == s.Id));
 
             return ResponseGenerator.Ok(noAdmissionStudents);
         }

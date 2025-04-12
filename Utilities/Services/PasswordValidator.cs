@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Utilities.Services
+﻿namespace Utilities.Services
 {
     public static class PasswordValidator
     {
@@ -17,11 +14,11 @@ namespace Utilities.Services
                 (p => p.Any(c => !char.IsLetterOrDigit(c)), "Password must contain at least one symbol.")
             };
 
-            foreach (var rule in rules)
+            foreach (var (condition, errorMessage) in rules)
             {
-                if (!rule.condition(password))
+                if (!condition(password))
                 {
-                    error = rule.errorMessage;
+                    error = errorMessage;
                     return false;
                 }
             }

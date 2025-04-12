@@ -37,7 +37,7 @@ namespace API.BaseControllers
             var result = await _context.GetAllAsync(model);
             return ResponseGenerator.Ok(result);
         }
-        [HttpPost("new")]
+        [HttpPost]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status409Conflict)]
         public virtual async Task<ObjectResult> New([FromBody] D entity)
         {
@@ -47,16 +47,16 @@ namespace API.BaseControllers
 
             return ResponseGenerator.Ok(created);
         }
-        [HttpPut("update")]
+        [HttpPut]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public virtual async Task<ObjectResult> Update([FromBody] T entity)
         {
-            if (await _context.GetByIdAsync(entity.Guid) == null)
+            if (await _context.GetByIdAsync(entity.Id) == null)
                 return ResponseGenerator.NotFound("Entity with such GUID was not found");
             await _context.UpdateAsync(entity);
             return ResponseGenerator.Ok(entity);
         }
-        [HttpDelete("delete")]
+        [HttpDelete]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public virtual async Task<ObjectResult> Delete(Guid id)
         {

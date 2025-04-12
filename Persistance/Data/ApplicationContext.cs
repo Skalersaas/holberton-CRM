@@ -25,8 +25,8 @@ namespace Persistance.Data
                 {
                     modelBuilder.Entity(entityType.ClrType, entityBuilder =>
                     {
-                        entityBuilder.Property("Guid").ValueGeneratedOnAdd();
-                        entityBuilder.HasKey("Guid");
+                        entityBuilder.Property("Id").ValueGeneratedOnAdd();
+                        entityBuilder.HasKey("Id");
 
                         entityBuilder.HasIndex("Slug").IsUnique();
                     });
@@ -50,7 +50,7 @@ namespace Persistance.Data
 
                 adm.HasMany(adm => adm.Notes)
                    .WithOne(note => note.Admission)
-                   .HasForeignKey(adm => adm.Guid)
+                   .HasForeignKey(adm => adm.Id)
                    .OnDelete(DeleteBehavior.Cascade);
             });
 

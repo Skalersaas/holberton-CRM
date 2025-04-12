@@ -6,7 +6,7 @@ namespace Domain.Models.Entities
     public class Admission : AdmissionDTO, IModel
     {
         [JsonPropertyName("id")]
-        public Guid Guid { get; set; }
+        public Guid Id { get; set; }
         
         [JsonIgnore]
         public Student Student { get; set; } = new();

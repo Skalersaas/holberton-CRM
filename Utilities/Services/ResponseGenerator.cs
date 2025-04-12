@@ -6,24 +6,23 @@ namespace Utilities.Services
 {
     public class ResponseGenerator
     {
-        public static ObjectResult Success<T>(T? data = default, string? message = null)
+        public static ObjectResult Success<T>(T? data = default)
         {
             var response = ApiResponse<T?>.SuccessResponse(data);
             return new(response) { StatusCode = StatusCodes.Status200OK };
         }
-
-        public static ObjectResult Error(string message, int statusCode = StatusCodes.Status400BadRequest)
+        public static ObjectResult Error(string message, int statusCode, object? errors = null)
         {
-            var response = ApiResponse<object>.ErrorResponse(message);
+            var response = ApiResponse<object>.ErrorResponse(message, errors);
             return new(response) { StatusCode = statusCode };
-        }
 
+        }
         public static ObjectResult Ok<T>(T? data)
             => Success(data);
 
 
-        public static ObjectResult BadRequest(string message = "Bad request")
-            => Error(message, StatusCodes.Status400BadRequest);
+        public static ObjectResult BadRequest(string message = "Bad request", object? errors = null)
+            => Error(message, StatusCodes.Status400BadRequest, errors);
         
         public static ObjectResult Unauthorized(string message = "Unauthorized")
             => Error(message, StatusCodes.Status401Unauthorized);

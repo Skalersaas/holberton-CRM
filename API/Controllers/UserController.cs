@@ -12,10 +12,10 @@ namespace API.Controllers
     [ApiController]
     [Route("[controller]")]
     [ProducesResponseType<ApiResponse<User>>(StatusCodes.Status200OK)]
-    public class UserController(IRepository<User> _users) : CrudController<User, UserDTO>(_users)
+    public class UserController(IRepository<User> context) : CrudController<User, UserDTO>(context)
     {
         [ProducesResponseType<ApiResponse<IEnumerable<User>>>(StatusCodes.Status200OK)]
-        public override async Task<ObjectResult> GetAll([FromQuery] SearchModel model)
+        public override async Task<ObjectResult> GetAll([FromBody] SearchModel model)
             => await base.GetAll(model);
 
         [AllowAnonymous]
@@ -29,7 +29,7 @@ namespace API.Controllers
             var user = Mapper.FromDTO<User, UserDTO>(entity);
             user.Password = PasswordHashGenerator.GenerateHash(entity.Password);
 
-            var created = await _users.CreateAsync(user);
+            var created = await _context.CreateAsync(user);
             if (created == default)
                 return ResponseGenerator.Conflict("User with such slug exists");
 
@@ -41,7 +41,7 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
         public ObjectResult Login([FromBody] LoginRequest request)
         {
-            var user = _users.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
+            var user = _context.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
             if (user == null)
                 return ResponseGenerator.NotFound("User not found");
 
@@ -55,19 +55,19 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> Update([FromBody] User entity)
         {
-            var existingUser = await _users.GetByIdAsync(entity.Guid);
+            var existingUser = await _context.GetByIdAsync(entity.Id);
             if (existingUser == null)
                 return ResponseGenerator.NotFound("User not found");
 
             entity.Password = existingUser.Password;
-            await _users.UpdateAsync(entity);
+            await _context.UpdateAsync(entity);
             return ResponseGenerator.Ok(entity);
         }
 
         [HttpPost("changepassword")]
         public async Task<ObjectResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            var user = _users.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
+            var user = _context.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
             if (user == null)
                 return ResponseGenerator.NotFound("User not found");
 
@@ -78,7 +78,7 @@ namespace API.Controllers
                 return ResponseGenerator.BadRequest(msg);
 
             user.Password = PasswordHashGenerator.GenerateHash(request.NewPassword);
-            await _users.UpdateAsync(user);
+            await _context.UpdateAsync(user);
 
             return ResponseGenerator.Ok("Password changed successfully");
         }
@@ -90,7 +90,7 @@ namespace API.Controllers
             if (string.IsNullOrEmpty(login))
                 return ResponseGenerator.Unauthorized();
 
-            var user = _users.GetByField(nameof(Domain.Models.Entities.User.Login), login);
+            var user = _context.GetByField(nameof(Domain.Models.Entities.User.Login), login);
             return user == null
                 ? ResponseGenerator.NotFound("User not found")
                 : ResponseGenerator.Ok(user);

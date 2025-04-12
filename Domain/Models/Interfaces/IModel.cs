@@ -5,7 +5,7 @@ namespace Domain.Models.Interfaces
     public interface IModel
     {
         [Required]
-        Guid Guid { get; set; }
+        Guid Id { get; set; }
         [Required]
         string Slug { get; set; }
     }

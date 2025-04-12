@@ -1,12 +1,11 @@
 ﻿using API.BaseControllers;
 using Domain.Models.Entities;
 using Domain.Models.JsonTemplates;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Persistance.Data;
 using Persistance.Data.Repositories;
 using System.Text.Json;
 using Utilities.Services;
+
 namespace API.Controllers
 {
     [ApiController]
@@ -14,10 +13,8 @@ namespace API.Controllers
     [ProducesResponseType<ApiResponse<Admission>>(StatusCodes.Status200OK)]
     public class AdmissionController(AdmissionManagement management) : CrudController<Admission, AdmissionDTO>(management.Admissions)
     {
-        private readonly IRepository<Admission> context = management.Admissions;
-
         [ProducesResponseType<ApiResponse<IEnumerable<Admission>>>(StatusCodes.Status200OK)]
-        public override Task<ObjectResult> GetAll([FromQuery] SearchModel model)
+        public override Task<ObjectResult> GetAll([FromBody] SearchModel model)
         {
             return base.GetAll(model);
         }
@@ -34,15 +31,15 @@ namespace API.Controllers
         }
         public override async Task<ObjectResult> Update([FromBody] Admission entity)
         {
-            var prev = await context.GetByIdAsync(entity.Guid);
+            var prev = await _context.GetByIdAsync(entity.Id);
             if (prev == null)
                 return ResponseGenerator.NotFound("Admission with such GUID was not found");
 
-            context.Detach(prev);
+            _context.Detach(prev);
 
             await TrackAndSaveAdmissionChanges(prev, entity);
 
-            await context.UpdateAsync(entity);
+            await _context.UpdateAsync(entity);
 
             return ResponseGenerator.Ok(entity);
         }
@@ -76,7 +73,7 @@ namespace API.Controllers
             }
             var aChange = new AdmissionChange()
             {
-                AdmissionGuid = prev.Guid,
+                AdmissionGuid = prev.Id,
                 Data = JsonSerializer.SerializeToDocument(changes)
             };
 

@@ -6,7 +6,7 @@ namespace Domain.Models.Entities
     public class AdmissionNote : IModel
     {
         [JsonPropertyName("id")]
-        public Guid Guid { get; set; }
+        public Guid Id { get; set; }
         public string Slug { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; }
         public string Content { get; set; } = string.Empty;

@@ -1,6 +1,7 @@
 ﻿using Domain.Models.Entities;
 using Domain.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Utilities.Services;
 
 namespace Persistance.Data
 {
@@ -35,7 +36,19 @@ namespace Persistance.Data
             modelBuilder.Entity<User>(user =>
             {
                 user.HasIndex("Login").IsUnique();
+
+                user.HasData(new User()
+                {
+                    Id = Guid.NewGuid(),
+                    Login = "Emishkins",
+                    Password = PasswordHashGenerator.GenerateHash("Emihskins2!"),
+                    Role = Domain.Enums.UserRole.Admin,
+                    Name = "Emin",
+                    Surname = "Amirov",
+                    Slug = "Best-Admin"
+                });
             });
+
             modelBuilder.Entity<Admission>(adm =>
             {
                 adm.HasOne(adm => adm.Student)

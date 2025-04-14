@@ -13,6 +13,15 @@ namespace Persistance.Data.Repositories
             try
             {
                 entity.Id = Guid.Empty;
+                var baseSlug = entity.SlugCreating();
+                entity.Slug = baseSlug + '-' + (await GetAllAsync(new SearchModel()
+                {
+                    Filters = new Dictionary<string, string>()
+                    {
+                        { nameof(entity.Slug),  baseSlug}
+                    }
+                })).Count().ToString();
+
                 await _set.AddAsync(entity);
                 await _context.SaveChangesAsync();
                 return entity;

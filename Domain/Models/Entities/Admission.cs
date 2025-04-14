@@ -2,6 +2,7 @@
 using Domain.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 using static Domain.ConstantErrorMessages;
 
 namespace Domain.Models.Entities
@@ -19,6 +20,10 @@ namespace Domain.Models.Entities
 
         [JsonIgnore]
         public List<AdmissionNote> Notes { get; set; } = [];
+        public string SlugCreating()
+        {
+            return Student!.Slug + Program;
+        }
     }
     public class AdmissionDTO
     {

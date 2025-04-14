@@ -14,5 +14,10 @@ namespace Domain.Models.Entities
         public Admission? Admission { get; set; } = null;
         public DateTime CreatedTime { get; set; }
         public JsonDocument Data { get; set; }
+
+        public string SlugCreating()
+        {
+            return "";
+        }
     }
 }

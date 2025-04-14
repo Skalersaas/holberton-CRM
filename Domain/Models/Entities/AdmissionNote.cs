@@ -14,5 +14,10 @@ namespace Domain.Models.Entities
         [JsonPropertyName("admissionId")]
         public Guid AdmissionGuid { get; set; }
         public Admission Admission { get; set; } = new();
+
+        public string SlugCreating()
+        {
+            return "";
+        }
     }
 }

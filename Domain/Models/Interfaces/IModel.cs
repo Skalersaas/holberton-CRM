@@ -8,5 +8,6 @@ namespace Domain.Models.Interfaces
         Guid Id { get; set; }
         [Required]
         string Slug { get; set; }
+        string SlugCreating();
     }
 }

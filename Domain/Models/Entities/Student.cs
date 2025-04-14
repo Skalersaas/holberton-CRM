@@ -9,6 +9,10 @@ namespace Domain.Models.Entities
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }
+        public string SlugCreating()
+        {
+            return Name + '-' + Surname;
+        }
     }
     public class StudentDTO 
     {

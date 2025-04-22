@@ -50,6 +50,7 @@ namespace API
         }
         private static void ConfigureApp(WebApplication app)
         {
+            app.UseCors(builder => builder.AllowAnyOrigin());
             app.UseRewriter(new RewriteOptions()
                 .AddRedirect("^$", "swagger/index.html"));
 

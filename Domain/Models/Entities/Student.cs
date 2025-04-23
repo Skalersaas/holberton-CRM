@@ -11,7 +11,7 @@ namespace Domain.Models.Entities
         public Guid Id { get; set; }
         public string SlugCreating()
         {
-            return Name + '-' + Surname;
+            return (Name + '-' + Surname).ToLower().Trim();
         }
     }
     public class StudentDTO 

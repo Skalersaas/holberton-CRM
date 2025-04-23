@@ -22,7 +22,7 @@ namespace Domain.Models.Entities
         public List<AdmissionNote> Notes { get; set; } = [];
         public string SlugCreating()
         {
-            return Student!.Slug + Program;
+            return (Student!.Slug + Program).ToLower().Trim();
         }
     }
     public class AdmissionDTO

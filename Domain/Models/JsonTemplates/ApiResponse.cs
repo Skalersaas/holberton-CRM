@@ -18,23 +18,19 @@ namespace Domain.Models.JsonTemplates
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Errors { get; init; }
 
-        private ApiResponse(bool success, T? data, string? message, object? errors)
+        private ApiResponse(bool success, T? data, int? fullCount, string? message, object? errors)
         {
             Success = success;
             Data = data;
             Message = message;
-            Count = DataCount(data);
+            Count = fullCount;
             Errors = errors;
         }
 
-        public static ApiResponse<T> SuccessResponse(T data) =>
-            new(true, data, null, null);
+        public static ApiResponse<T> SuccessResponse(T data, int? fullCount) =>
+            new(true, data, fullCount, null, null);
 
         public static ApiResponse<T> ErrorResponse(string message, object? errors = null) =>
-            new(false, default, message, errors);
-
-        private static int? DataCount(T? data) =>
-            (data is ICollection collection) ? collection.Count : null;
+            new(false, default, 0, message, errors);
     }
-
 }

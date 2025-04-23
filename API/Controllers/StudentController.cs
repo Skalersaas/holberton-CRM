@@ -24,9 +24,9 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<IEnumerable<Student>>>(StatusCodes.Status200OK)]
         public async Task<ObjectResult> NoAdmissionStudents()
         {
-            var allStudents = await _context.GetAllAsync(new SearchModel());
+            var (allStudents, _) = await _context.GetAllAsync(new SearchModel());
 
-            var admittedStudents = await _admissions.GetAllAsync(new SearchModel());
+            var (admittedStudents, _) = await _admissions.GetAllAsync(new SearchModel());
 
             var noAdmissionStudents = allStudents.Where(s => !admittedStudents.Any(a => a.StudentGuid == s.Id));
 

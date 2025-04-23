@@ -5,7 +5,7 @@ namespace Persistance.Data.Repositories
 {
     public class AdmissionRepository(ApplicationContext context) : Repository<Admission>(context)
     {
-        public override async Task<IEnumerable<Admission>> GetAllAsync(SearchModel model)
+        public override async Task<(IEnumerable<Admission> data, int fullCount)> GetAllAsync(SearchModel model)
         {
             if (string.IsNullOrWhiteSpace(model.SortedField))
             {

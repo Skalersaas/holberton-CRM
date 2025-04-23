@@ -34,8 +34,8 @@ namespace API.BaseControllers
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status400BadRequest)]
         public virtual async Task<ObjectResult> GetAll([FromBody] SearchModel model)
         {
-            var result = await _context.GetAllAsync(model);
-            return ResponseGenerator.Ok(result);
+            var (data, fullCount) = await _context.GetAllAsync(model);
+            return ResponseGenerator.Ok(data, fullCount);
         }
         [HttpPost]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status409Conflict)]

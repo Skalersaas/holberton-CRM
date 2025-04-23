@@ -21,16 +21,16 @@ namespace API.Controllers
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public override async Task<ObjectResult> New([FromBody] AdmissionDTO entity)
         {
-            var student = await management.Students.GetBySlugAsync(entity.StudentSlug);
-            var user = await management.Users.GetBySlugAsync(entity.UserSlug);
+            var student = await management.Students.GetByIdAsync(entity.StudentGuid);
+            var user = await management.Users.GetByIdAsync(entity.UserGuid);
             if (student is null)
-                return ResponseGenerator.NotFound("Student with such SLUG was not found");
+                return ResponseGenerator.NotFound("Student with such Id was not found");
 
             if (user is null)
-                return ResponseGenerator.NotFound("User with such SLUG was not found");
+                return ResponseGenerator.NotFound("User with such Id was not found");
 
-            entity.StudentGuid = student.Id;
-            entity.UserGuid = user.Id;
+            entity.StudentSlug = student.Slug;
+            entity.UserSlug = user.Slug;
 
             return await base.New(entity);
         }

@@ -20,7 +20,7 @@ namespace Persistance.Data.Repositories
                     {
                         { nameof(entity.Slug),  baseSlug}
                     }
-                })).Count().ToString();
+                })).fullCount.ToString();
 
                 await _set.AddAsync(entity);
                 await _context.SaveChangesAsync();
@@ -43,17 +43,18 @@ namespace Persistance.Data.Repositories
 
             return _set.AsEnumerable().FirstOrDefault(entity => property.GetValue(entity)?.Equals(value) == true);
         }
-        public virtual async Task<IEnumerable<T>> GetAllAsync(SearchModel model)
+        public virtual async Task<(IEnumerable<T> data, int fullCount)> GetAllAsync(SearchModel model)
         {
             var query = _set.AsQueryable();
 
             query = QueryMaster<T>.FilterByFields(query, model.Filters);
             query = QueryMaster<T>.OrderByField(query, model.SortedField, model.IsAscending);
 
+            var fullCount = query.Count();
             if (model.PaginationValid())
                 query = query.Skip(model.Size * (model.Page - 1)).Take(model.Size);
 
-            return await query.ToListAsync();
+            return (await query.ToListAsync(), fullCount);
         }
         public async Task UpdateAsync(T entity)
         {

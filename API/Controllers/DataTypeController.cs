@@ -40,7 +40,7 @@ namespace API.Controllers
 
             return ResponseGenerator.Ok(GetEnumValues(modelType));
         }
-        public static List<object> GetEnumValues(Type enumType) 
+        private static List<object> GetEnumValues(Type enumType) 
         {
             return Enum.GetValues(enumType)
                 .Cast<Enum>()

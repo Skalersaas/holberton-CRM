@@ -6,9 +6,9 @@ namespace Utilities.Services
 {
     public class ResponseGenerator
     {
-        public static ObjectResult Success<T>(T? data = default)
+        public static ObjectResult Success<T>(T? data = default, int? fullCount = null)
         {
-            var response = ApiResponse<T?>.SuccessResponse(data);
+            var response = ApiResponse<T?>.SuccessResponse(data, fullCount);
             return new(response) { StatusCode = StatusCodes.Status200OK };
         }
         public static ObjectResult Error(string message, int statusCode, object? errors = null)
@@ -17,8 +17,8 @@ namespace Utilities.Services
             return new(response) { StatusCode = statusCode };
 
         }
-        public static ObjectResult Ok<T>(T? data)
-            => Success(data);
+        public static ObjectResult Ok<T>(T? data, int? fullCount = null)
+            => Success(data, fullCount);
 
 
         public static ObjectResult BadRequest(string message = "Bad request", object? errors = null)

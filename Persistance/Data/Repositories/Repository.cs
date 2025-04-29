@@ -58,9 +58,24 @@ namespace Persistance.Data.Repositories
         }
         public async Task UpdateAsync(T entity)
         {
-            _set.Update(entity);
+            var existingEntity = await _set.FindAsync(entity.Id) ?? throw new InvalidOperationException("Entity not found");
+            var properties = typeof(T).GetProperties();
+
+            foreach (var prop in properties)
+            {
+                var newValue = prop.GetValue(entity);
+                if (newValue == null)
+                    continue;
+
+                if (prop.PropertyType == typeof(string) && string.IsNullOrWhiteSpace((string)newValue))
+                    continue;
+
+                prop.SetValue(existingEntity, newValue);
+            }
+
             await _context.SaveChangesAsync();
         }
+
         public async Task<bool> DeleteAsync(Guid id)
         {
             var entity = await GetByIdAsync(id);

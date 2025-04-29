@@ -3,14 +3,13 @@ using API.Middleware;
 using Persistance.Data;
 using Utilities.Services;
 using Microsoft.OpenApi.Models;
+using Persistance.Data.Interfaces;
 using Persistance.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
-using Domain.Models.Entities;
-using Persistance.Data.Interfaces;
 
 namespace API
 {
@@ -87,6 +86,7 @@ namespace API
         }
         private static void AddRepositories(IServiceCollection services)
         {
+            services.AddScoped(typeof(ISchemaRepository<>), typeof(SchemaRepository<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<AdmissionManagement>();
 

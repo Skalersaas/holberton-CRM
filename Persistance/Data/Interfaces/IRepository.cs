@@ -10,7 +10,7 @@ namespace Persistance.Data.Interfaces
         Task<T?> GetBySlugAsync(string id);
         T? GetByField(string fieldName, object value);
         Task<(IEnumerable<T> data, int fullCount)> GetAllAsync(SearchModel model);
-        Task UpdateAsync(T entity);
+        Task<T> UpdateAsync(T entity);
         Task<bool> DeleteAsync(Guid id);
         void Detach(T entity);
     }

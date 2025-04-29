@@ -55,7 +55,7 @@ namespace Persistance.Data.Repositories
         }
         public async Task<T?> GetByIdAsync(Guid id) => await _set.FindAsync(id);
 
-        public async Task UpdateAsync(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
             _set.Update(entity);
             await _context.SaveChangesAsync();

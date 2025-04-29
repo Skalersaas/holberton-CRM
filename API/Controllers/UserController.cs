@@ -57,8 +57,8 @@ namespace API.Controllers
                 return ResponseGenerator.NotFound("User not found");
 
             entity.Password = existingUser.Password;
-            await _context.UpdateAsync(entity);
-            return ResponseGenerator.Ok(entity);
+
+            return ResponseGenerator.Ok(await _context.UpdateAsync(entity));
         }
 
         [HttpPost("changepassword")]

@@ -8,7 +8,6 @@ using Utilities.Services;
 
 namespace API.BaseControllers
 {
-    [Authorize]
     [ApiController]
     [ModelValidation]
     public abstract class CrudController<T, D>(IRepository<T> context) : 
@@ -53,8 +52,7 @@ namespace API.BaseControllers
         {
             if (await _context.GetByIdAsync(entity.Id) == null)
                 return ResponseGenerator.NotFound("Entity with such GUID was not found");
-            await _context.UpdateAsync(entity);
-            return ResponseGenerator.Ok(entity);
+            return ResponseGenerator.Ok(await _context.UpdateAsync(entity));
         }
         [HttpDelete]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]

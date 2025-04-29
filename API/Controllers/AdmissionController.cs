@@ -29,10 +29,12 @@ namespace API.Controllers
             if (user is null)
                 return ResponseGenerator.NotFound("User with such Id was not found");
 
-            entity.StudentSlug = student.Slug;
-            entity.UserSlug = user.Slug;
+            var adm = Mapper.FromDTO<Admission, AdmissionDTO>(entity);
 
-            return await base.New(entity);
+            adm.Student = student;
+            adm.User = user;
+            
+            return ResponseGenerator.Ok(await management.Admissions.CreateAsync(adm));
         }
 
         public override async Task<ObjectResult> Update([FromBody] Admission entity)

@@ -11,7 +11,7 @@ namespace Domain.Models.Entities
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }
-        public string SlugCreating()
+        public string BuildSlug()
         {
             return (Name + '-' + Surname).ToLower().Trim();
         }

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Domain.Models.Entities;
+using Persistance.Data.Interfaces;
 
 namespace API
 {
@@ -88,7 +89,6 @@ namespace API
         {
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<AdmissionManagement>();
-            services.AddScoped<IRepository<Admission>, AdmissionRepository>();
 
         }
         private static void ConfigureAuthentification(IServiceCollection services)

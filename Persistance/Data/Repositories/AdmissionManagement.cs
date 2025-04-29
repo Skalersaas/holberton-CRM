@@ -1,18 +1,19 @@
 ﻿using Domain.Models.Entities;
+using Persistance.Data.Interfaces;
 namespace Persistance.Data.Repositories
 {
     public class AdmissionManagement(
         IRepository<Admission> admissionRepo,
         IRepository<Student> studentRepo,
         IRepository<User> userRepo,
-        IRepository<AdmissionChange> admissionChangeRepo,
-        IRepository<AdmissionNote> admissionNoteRepo)
+        ISchemaRepository<AdmissionChange> admissionChangeRepo,
+        ISchemaRepository<AdmissionNote> admissionNoteRepo)
     {
         public IRepository<Admission> Admissions { get; } = admissionRepo;
         public IRepository<Student> Students { get; } = studentRepo;
         public IRepository<User> Users { get; } = userRepo;
-        public IRepository<AdmissionChange> AdmissionChanges { get; } = admissionChangeRepo;
-        public IRepository<AdmissionNote> AdmissionNotes { get; } = admissionNoteRepo;
+        public ISchemaRepository<AdmissionChange> AdmissionChanges { get; } = admissionChangeRepo;
+        public ISchemaRepository<AdmissionNote> AdmissionNotes { get; } = admissionNoteRepo;
     }
 
 }

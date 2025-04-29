@@ -1,8 +1,9 @@
+using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 
-namespace Persistance.Data
+namespace Persistance.Data.Interfaces
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T> where T : class, IModel
     {
         Task<T?> CreateAsync(T entity);
         Task<T?> GetByIdAsync(Guid id);

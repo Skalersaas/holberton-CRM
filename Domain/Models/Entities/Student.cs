@@ -9,7 +9,7 @@ namespace Domain.Models.Entities
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }
-        public string BuildSlug()
+        public string SlugCreating()
         {
             return (Name + '-' + Surname).ToLower().Trim();
         }

@@ -2,7 +2,7 @@
 using Domain.Models.Entities;
 using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Mvc;
-using Persistance.Data.Interfaces;
+using Persistance.Data;
 using Utilities.Services;
 
 namespace API.Controllers

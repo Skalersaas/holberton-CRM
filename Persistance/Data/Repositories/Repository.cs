@@ -1,27 +1,76 @@
 ﻿using Domain.Models.Interfaces;
 using Domain.Models.JsonTemplates;
 using Microsoft.EntityFrameworkCore;
-using Persistance.Data.Interfaces;
 using Utilities.Services;
 namespace Persistance.Data.Repositories
 {
-    public class Repository<T>(ApplicationContext context) : SchemaRepository<T>(context), IRepository<T>
-        where T : class, IModel
+    public class Repository<T>(ApplicationContext _context) : IRepository<T> where T : class, IModel
     {
-        public override async Task<T?> CreateAsync(T entity)
+        private readonly DbSet<T> _set = _context.Set<T>();
+
+        public async Task<T?> CreateAsync(T entity)
         {
-            var baseSlug = entity.BuildSlug();
-            
-            entity.Slug = baseSlug + '-' + 
-                await _set.CountAsync(e => e.Slug.StartsWith(baseSlug));
-            return await base.CreateAsync(entity);
+            try
+            {
+                entity.Id = Guid.Empty;
+                var baseSlug = entity.SlugCreating();
+                entity.Slug = baseSlug + '-' + (await GetAllAsync(new SearchModel()
+                {
+                    Filters = new Dictionary<string, string>()
+                    {
+                        { nameof(entity.Slug),  baseSlug}
+                    }
+                })).fullCount.ToString();
+
+                await _set.AddAsync(entity);
+                await _context.SaveChangesAsync();
+                return entity;
+            }
+            catch
+            {
+                return default;
+            }
         }
+        public void Detach(T entity)
+        {
+            _context.Entry(entity).State = EntityState.Detached;
+        }
+        public async Task<T?> GetByIdAsync(Guid id) => await _set.FindAsync(id);
         public async Task<T?> GetBySlugAsync(string slug) => await _set.FirstOrDefaultAsync(x => x.Slug == slug);
         public T? GetByField(string fieldName, object value)
         {
             var property = QueryMaster<T>.GetProperty(fieldName);
 
             return _set.AsEnumerable().FirstOrDefault(entity => property.GetValue(entity)?.Equals(value) == true);
+        }
+        public virtual async Task<(IEnumerable<T> data, int fullCount)> GetAllAsync(SearchModel model)
+        {
+            var query = _set.AsQueryable();
+
+            query = QueryMaster<T>.FilterByFields(query, model.Filters);
+            query = QueryMaster<T>.OrderByField(query, model.SortedField, model.IsAscending);
+
+            var fullCount = query.Count();
+            if (model.PaginationValid())
+                query = query.Skip(model.Size * (model.Page - 1)).Take(model.Size);
+
+            return (await query.ToListAsync(), fullCount);
+        }
+        public async Task UpdateAsync(T entity)
+        {
+            _set.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var entity = await GetByIdAsync(id);
+
+            if (entity == null)
+                return false;
+
+            _set.Remove(entity);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

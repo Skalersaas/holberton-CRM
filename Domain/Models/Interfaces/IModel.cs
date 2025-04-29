@@ -2,10 +2,12 @@
 
 namespace Domain.Models.Interfaces
 {
-    public interface IModel : ISchema
+    public interface IModel
     {
         [Required]
+        Guid Id { get; set; }
+        [Required]
         string Slug { get; set; }
-        string BuildSlug();
+        string SlugCreating();
     }
 }

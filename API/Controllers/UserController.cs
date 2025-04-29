@@ -4,7 +4,7 @@ using Domain.Models.JsonTemplates;
 using Domain.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Persistance.Data.Interfaces;
+using Persistance.Data;
 using Utilities.Services;
 
 namespace API.Controllers

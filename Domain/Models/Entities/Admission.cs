@@ -20,7 +20,7 @@ namespace Domain.Models.Entities
 
         [JsonIgnore]
         public List<AdmissionNote> Notes { get; set; } = [];
-        public string BuildSlug()
+        public string SlugCreating()
         {
             return (Student!.Slug + Program).ToLower().Trim();
         }

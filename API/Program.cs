@@ -50,6 +50,11 @@ namespace API
         }
         private static void ConfigureApp(WebApplication app)
         {
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+                context.Database.Migrate();
+            }
             app.UseCors(builder =>
                 builder.WithOrigins("http://localhost:3000")
                        .AllowAnyMethod()

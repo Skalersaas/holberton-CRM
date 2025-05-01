@@ -27,9 +27,9 @@ namespace Domain.Models.Entities
     public class AdmissionDTO
     {
         [JsonPropertyName("studentId")]
-        public Guid StudentGuid { get; set; }
+        public Guid StudentId { get; set; }
         [JsonPropertyName("userId")]
-        public Guid UserGuid { get; set; }
+        public Guid UserId { get; set; }
 
         [Required(ErrorMessage = FieldRequired)]
         public string Program { get; set; } = string.Empty;

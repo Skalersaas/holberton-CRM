@@ -28,7 +28,7 @@ namespace API.Controllers
 
             var (admittedStudents, _) = await _admissions.GetAllAsync(new SearchModel());
 
-            var noAdmissionStudents = allStudents.Where(s => !admittedStudents.Any(a => a.StudentGuid == s.Id));
+            var noAdmissionStudents = allStudents.Where(s => !admittedStudents.Any(a => a.StudentId == s.Id));
 
             return ResponseGenerator.Ok(noAdmissionStudents);
         }

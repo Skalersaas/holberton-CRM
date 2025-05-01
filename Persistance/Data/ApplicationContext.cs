@@ -1,23 +1,16 @@
 ﻿using Domain.Models.Entities;
 using Domain.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Utilities.Services;
 
 namespace Persistance.Data
 {
-    public class ApplicationContext : DbContext
+    public class ApplicationContext(DbContextOptions<ApplicationContext> options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Admission> Admissions { get; set; }
         public DbSet<AdmissionChange> AdmissionChanges { get; set; }
         public DbSet<AdmissionNote> AdmissionNotes { get; set; }
-
-        public ApplicationContext(DbContextOptions options) : base(options)
-        {
-            Database.EnsureCreated();
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -36,30 +29,19 @@ namespace Persistance.Data
             modelBuilder.Entity<User>(user =>
             {
                 user.HasIndex("Login").IsUnique();
-
-                user.HasData(new User()
-                {
-                    Id = Guid.NewGuid(),
-                    Login = "Emishkins",
-                    Password = PasswordHashGenerator.GenerateHash("Emihskins2!"),
-                    Role = Domain.Enums.UserRole.Admin,
-                    Name = "Emin",
-                    Surname = "Amirov",
-                    Slug = "Best-Admin"
-                });
             });
 
             modelBuilder.Entity<Admission>(adm =>
             {
                 adm.HasOne(adm => adm.Student)
                     .WithMany()
-                    .HasForeignKey(adm => adm.StudentGuid)
+                    .HasForeignKey(adm => adm.StudentId)
                     .IsRequired()
                     .OnDelete(DeleteBehavior.Cascade);
 
                 adm.HasOne(adm => adm.User)
                    .WithMany()
-                   .HasForeignKey(adm => adm.UserGuid) 
+                   .HasForeignKey(adm => adm.UserId) 
                    .IsRequired();
 
                 adm.HasMany(adm => adm.Notes)

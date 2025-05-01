@@ -10,9 +10,7 @@ namespace API.BaseControllers
 {
     [ApiController]
     [ModelValidation]
-#if DEBUG
     [Authorize]
-#endif
     public abstract class CrudController<T, D>(IRepository<T> context) : 
         ControllerBase where T : class, D, IModel
                        where D : class

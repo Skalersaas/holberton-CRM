@@ -56,7 +56,8 @@ namespace API
                 context.Database.Migrate();
             }
             app.UseCors(builder =>
-                builder.WithOrigins("http://localhost:3000")
+                builder.WithOrigins("http://localhost:3000",
+                                    "https://crm-dashboard-umber-sigma.vercel.app")
                        .AllowAnyMethod()
                        .AllowAnyHeader());
             app.UseRewriter(new RewriteOptions()

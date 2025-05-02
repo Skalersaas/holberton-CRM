@@ -40,6 +40,7 @@ namespace API.Controllers
         public override async Task<ObjectResult> Update([FromBody] Admission entity)
         {
             var prev = await _context.GetByIdAsync(entity.Id);
+            entity.Student = await management.Students.GetByIdAsync(entity.StudentId);
             if (prev == null)
                 return ResponseGenerator.NotFound("Admission with such GUID was not found");
 

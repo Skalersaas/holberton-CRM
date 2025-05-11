@@ -4,39 +4,40 @@ namespace API.Middleware;
 
 public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> logger)
 {
-
-    private static readonly JsonSerializerOptions options = new()
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
+
     public async Task InvokeAsync(HttpContext context)
     {
-        // Log HTTP Request Information
-        context.Request.EnableBuffering();
-        logger.LogInformation("HTTP Request: {method} {path} \nRequest Body: {body}",
-            context.Request.Method, context.Request.Path, await ReadRequestBodyAsync(context.Request));
+        if (context.Request.Path.StartsWithSegments("/swagger"))
+        {
+            await next(context);
+            return;
+        }
 
-        var originalResponseBodyStream = context.Response.Body;
+        context.Request.EnableBuffering();
+
+        var requestBody = await ReadRequestBodyAsync(context.Request);
+        logger.LogInformation("HTTP Request: {Method} {Path}\nRequest Body:\n{Body}",
+            context.Request.Method, context.Request.Path, requestBody);
+
+        var originalBodyStream = context.Response.Body;
         using var responseBodyStream = new MemoryStream();
         context.Response.Body = responseBodyStream;
 
         try
         {
-            // Proceed with the next middleware
             await next(context);
-
-            // Log the response
-            await LogResponse(context, responseBodyStream);
-
-            // Copy response back to the original stream
+            await LogResponseAsync(context, responseBodyStream);
             responseBodyStream.Seek(0, SeekOrigin.Begin);
-            await responseBodyStream.CopyToAsync(originalResponseBodyStream);
+            await responseBodyStream.CopyToAsync(originalBodyStream);
         }
         finally
         {
-            // Ensure the original response stream is restored
-            context.Response.Body = originalResponseBodyStream;
+            context.Response.Body = originalBodyStream;
         }
     }
 
@@ -52,17 +53,16 @@ public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> 
         return body;
     }
 
-    private async Task LogResponse(HttpContext context, MemoryStream responseBodyStream)
+    private async Task LogResponseAsync(HttpContext context, MemoryStream responseStream)
     {
-        responseBodyStream.Seek(0, SeekOrigin.Begin);
-        var responseText = await new StreamReader(responseBodyStream).ReadToEndAsync();
+        responseStream.Seek(0, SeekOrigin.Begin);
+        var responseBody = await new StreamReader(responseStream).ReadToEndAsync();
 
-        if (!context.Request.Path.StartsWithSegments("/swagger"))
-        {
-            logger.Log(context.Response.StatusCode >= 400 ? LogLevel.Error : LogLevel.Information,
-                "HTTP Reponse: {statusCode} \nResponse Body: {body}",
-                context.Response.StatusCode, FormatJson(responseText));
-        }
+        var level = context.Response.StatusCode >= 400 ? LogLevel.Error : LogLevel.Information;
+        var formatted = FormatJson(responseBody);
+
+        logger.Log(level, "HTTP Response: {StatusCode}\nResponse Body:\n{Body}",
+            context.Response.StatusCode, formatted);
     }
 
     private static string FormatJson(string json)
@@ -70,9 +70,8 @@ public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> 
         try
         {
             if (string.IsNullOrWhiteSpace(json)) return json;
-
-            var jsonElement = JsonSerializer.Deserialize<JsonElement>(json);
-            return JsonSerializer.Serialize(jsonElement, options);
+            var doc = JsonSerializer.Deserialize<JsonElement>(json);
+            return JsonSerializer.Serialize(doc, JsonOptions);
         }
         catch
         {

@@ -1,57 +1,92 @@
 ﻿using Domain.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Persistance.Data.Interfaces;
-using Utilities.Services;
+using System.Linq.Expressions;
+using Utilities.DataManipulation;
+
 namespace Persistance.Data.Repositories
 {
-    public class Repository<T>(ApplicationContext context) : SchemaRepository<T>(context), IRepository<T>
+    public class Repository<T>(ApplicationContext _context) : IRepository<T> 
         where T : class, IModel
     {
-        public override async Task<T?> CreateAsync(T entity)
+        protected readonly DbSet<T> _set = _context.Set<T>();
+        public virtual async Task<T?> CreateAsync(T schema)
         {
-            entity.Slug = await GetBuildedSlug(entity);
-            var baseSlug = entity.BuildSlug();
-            
-            entity.Slug = baseSlug + '-' + 
-                await _set.CountAsync(e => e.Slug.StartsWith(baseSlug));
-            return await base.CreateAsync(entity);
+            try
+            {
+                schema.Id = Guid.Empty;
+                await _set.AddAsync(schema);
+                await _context.SaveChangesAsync();
+                return schema;
+            }
+            catch
+            {
+                return default;
+            }
         }
-        public async Task<T?> GetBySlugAsync(string slug) => await _set.FirstOrDefaultAsync(x => x.Slug == slug);
+        public async Task<(IEnumerable<T> data, int fullCount)> GetAllAsync(SearchModel model)
+        {
+            var query = _set.AsQueryable();
+
+            query = QueryMaster<T>.FilterByFields(query, model.Filters);
+            query = QueryMaster<T>.OrderByField(query, model.SortedField, model.IsAscending);
+
+            var fullCount = query.Count();
+            if (model.PaginationValid())
+                query = query.Skip(model.Size * (model.Page - 1)).Take(model.Size);
+
+            return (await query.ToListAsync(), fullCount);
+        }
+        public int GetCount(SearchModel model)
+        {
+            var query = _set.AsQueryable();
+
+            query = QueryMaster<T>.FilterByFields(query, model.Filters);
+            query = QueryMaster<T>.OrderByField(query, model.SortedField, model.IsAscending);
+
+            var fullCount = query.Count();
+
+            return fullCount;
+        }
+        public async Task<T?> GetByIdAsync(Guid id) => await _set.FindAsync(id);
+
         public T? GetByField(string fieldName, object value)
         {
             var property = QueryMaster<T>.GetProperty(fieldName);
 
             return _set.AsEnumerable().FirstOrDefault(entity => property.GetValue(entity)?.Equals(value) == true);
         }
-        public override async Task<T> UpdateAsync(T entity)
+        public virtual async Task<T> UpdateAsync(T entity)
         {
-            var found = await GetByIdAsync(entity.Id) ?? throw new InvalidOperationException("Entity not found");
-            var properties = typeof(T).GetProperties();
-
-            foreach (var prop in properties)
-            {
-                if (prop.Name == nameof(entity.Id))
-                    continue;
-
-                // Skip navigation or collection properties if needed
-                if (!prop.PropertyType.IsValueType && prop.PropertyType != typeof(string))
-                    continue;
-
-                var newValue = (prop.Name == nameof(entity.Slug))
-                    ? await GetBuildedSlug(entity)
-                    : prop.GetValue(entity);
-                
-                
-                prop.SetValue(found, newValue);
-            }
+            _set.Update(entity);
             await _context.SaveChangesAsync();
-            return found;
+            return entity;
+        }
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var entity = await GetByIdAsync(id);
+
+            if (entity == null)
+                return false;
+
+            _set.Remove(entity);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        private async Task<string> GetBuildedSlug(T entity)
+        public void Detach(T entity) => _context.Entry(entity).State = EntityState.Detached;
+
+        public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
         {
-            var baseSlug = entity.BuildSlug();
-            return baseSlug + '-' + await _set.CountAsync(e => e.Slug.StartsWith(baseSlug));
+            IQueryable<T> query = _set;
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
+
     }
 }

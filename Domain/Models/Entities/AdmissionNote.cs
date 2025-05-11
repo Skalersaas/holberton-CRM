@@ -1,17 +1,29 @@
 ﻿using Domain.Models.Interfaces;
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
+using static Domain.ConstantErrorMessages;
 
 namespace Domain.Models.Entities
 {
-    public class AdmissionNote : ISchema
+    public class AdmissionNote : IModel
     {
-        [JsonPropertyName("id")]
         public Guid Id { get; set; }
-        public DateTime CreatedOn { get; set; }
+        [Required(ErrorMessage = FieldRequired)]
         public string Content { get; set; } = string.Empty;
 
-        [JsonPropertyName("admissionId")]
-        public Guid AdmissionGuid { get; set; }
+        [Required(ErrorMessage = FieldRequired)]
+        public Guid AdmissionId { get; set; }
         public Admission Admission { get; set; } = new();
+        public DateTime CreatedOn { get; set; }
+
+        public AdmissionNote(string content, Guid admId)
+        {
+            CreatedOn = DateTime.UtcNow;
+            AdmissionId = admId;
+            Content = content;
+        }
+        public AdmissionNote()
+        {
+            CreatedOn = DateTime.UtcNow;
+        }
     }
 }

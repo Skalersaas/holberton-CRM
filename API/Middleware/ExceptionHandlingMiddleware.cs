@@ -1,41 +1,43 @@
-﻿using Utilities.Services;
-namespace API.Middleware
+﻿using Utilities.Responses;
+using System.Text.Json;
+
+namespace API.Middleware;
+
+public class ExceptionHandlingMiddleware(RequestDelegate next)
 {
-    public class ExceptionHandlingMiddleware(RequestDelegate _next)
+    public async Task InvokeAsync(HttpContext context)
     {
-        public async Task InvokeAsync(HttpContext context)
+        try
         {
-            try
+            await next(context);
+        }
+        catch (Exception e) 
+        {
+            Console.WriteLine(e.Message);
+            if (!context.Response.HasStarted)
             {
-                await _next(context);
-            }
-            catch 
-            {
-                context.Response.StatusCode = 500;
-            }
-            finally
-            {
-                if (context.Response.StatusCode >= 400)
-                    await HandleException(context);
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             }
         }
 
-        private static async Task HandleException(HttpContext context)
+        if (!context.Response.HasStarted && context.Response.StatusCode >= 400)
         {
-            if (context.Response.HasStarted)
-                return;
-
-            var response = (context.Response.StatusCode switch
-            {
-                400 => ResponseGenerator.BadRequest(),
-                401 => ResponseGenerator.Unauthorized(),
-                404 => ResponseGenerator.NotFound(),
-                409 => ResponseGenerator.Conflict(),
-                _ => ResponseGenerator.InternalServerError()
-            }).Value;
-
-            if (context.Response.Body.Length == 0)
-            await context.Response.WriteAsJsonAsync(response);
+            await WriteErrorResponseAsync(context);
         }
+    }
+
+    private static async Task WriteErrorResponseAsync(HttpContext context)
+    {
+        var response = context.Response.StatusCode switch
+        {
+            StatusCodes.Status400BadRequest => ResponseGenerator.BadRequest(),
+            StatusCodes.Status401Unauthorized => ResponseGenerator.Unauthorized(),
+            StatusCodes.Status404NotFound => ResponseGenerator.NotFound(),
+            StatusCodes.Status409Conflict => ResponseGenerator.Conflict(),
+            _ => ResponseGenerator.InternalServerError()
+        };
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response.Value));
     }
 }

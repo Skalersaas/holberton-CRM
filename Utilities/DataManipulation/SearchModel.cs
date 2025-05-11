@@ -1,4 +1,4 @@
-﻿namespace Domain.Models.JsonTemplates
+﻿namespace Utilities.DataManipulation
 {
     public class SearchModel
     {

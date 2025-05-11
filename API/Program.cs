@@ -10,6 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
+using Utilities.Security;
+using Application.Interfaces;
+using Application.Services;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Utilities.Swagger;
 
 namespace API
 {
@@ -73,11 +78,8 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
-            //if (app.Environment.IsDevelopment())
-            //{
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            //}
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection(); 
 
@@ -92,10 +94,8 @@ namespace API
         }
         private static void AddRepositories(IServiceCollection services)
         {
-            services.AddScoped(typeof(ISchemaRepository<>), typeof(SchemaRepository<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<AdmissionManagement>();
-
+            services.AddScoped(typeof(IModelService<,,,>), typeof(ModelService<,,,>));
         }
         private static void ConfigureAuthentification(IServiceCollection services)
         {
@@ -143,10 +143,11 @@ namespace API
                     In = ParameterLocation.Header,
                     Description = "Enter 'Bearer {token}'"
                 });
+
                 options.OperationFilter<AuthRequirementFilter>();
             });
-
         }
+
         #endregion
     }
 }

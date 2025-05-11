@@ -1,105 +1,52 @@
 ﻿using API.BaseControllers;
+using Application.Models;
+using Application.Services;
 using Domain.Models.Entities;
-using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Mvc;
-using Persistance.Data.Repositories;
-using System.Text.Json;
-using Utilities.Services;
+using Utilities.DataManipulation;
+using Utilities.Responses;
 
 namespace API.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    [ProducesResponseType<ApiResponse<Admission>>(StatusCodes.Status200OK)]
-    public class AdmissionController(AdmissionManagement management) : CrudController<Admission, AdmissionDTO>(management.Admissions)
+    public class AdmissionController(IServiceProvider serviceProvider): CrudController<Admission, AdmissionCreate, AdmissionUpdate, AdmissionResponse>
+        (ActivatorUtilities.CreateInstance<AdmissionService>(serviceProvider))
     {
-        [ProducesResponseType<ApiResponse<IEnumerable<Admission>>>(StatusCodes.Status200OK)]
-        public override Task<ObjectResult> GetAll([FromBody] SearchModel model)
-        {
-            return base.GetAll(model);
-        }
-        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
-        public override async Task<ObjectResult> New([FromBody] AdmissionDTO entity)
-        {
-            var student = await management.Students.GetByIdAsync(entity.StudentId);
-            var user = await management.Users.GetByIdAsync(entity.UserId);
-            if (student is null)
-                return ResponseGenerator.NotFound("Student with such Id was not found");
+        [ProducesResponseType<ApiResponse<AdmissionResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> Create([FromBody] AdmissionCreate entity) => await base.Create(entity);
 
-            if (user is null)
-                return ResponseGenerator.NotFound("User with such Id was not found");
+        [ProducesResponseType<ApiResponse<AdmissionResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> GetById(Guid guid) => await base.GetById(guid);
 
-            var adm = Mapper.FromDTO<Admission, AdmissionDTO>(entity);
+        [ProducesResponseType<ApiResponse<AdmissionResponse[]>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> GetAll([FromBody] SearchModel model) => await base.GetAll(model);
 
-            adm.Student = student;
-            adm.User = user;
-            
-            return ResponseGenerator.Ok(await management.Admissions.CreateAsync(adm));
-        }
+        [ProducesResponseType<ApiResponse<AdmissionResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> Update([FromBody] AdmissionUpdate entity) => await base.Update(entity);
 
-        public override async Task<ObjectResult> Update([FromBody] Admission entity)
-        {
-            var prev = await _context.GetByIdAsync(entity.Id);
-            entity.Student = await management.Students.GetByIdAsync(entity.StudentId);
-            if (prev == null)
-                return ResponseGenerator.NotFound("Admission with such GUID was not found");
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> Delete(Guid id) => await base.Delete(id);
 
-            _context.Detach(prev);
-
-            await TrackAndSaveAdmissionChanges(prev, entity);
-
-            await _context.UpdateAsync(entity);
-
-            return ResponseGenerator.Ok(entity);
-        }
         [HttpGet("history")]
-        public async Task<ObjectResult> History([FromQuery] Guid id)
+        [ProducesResponseType<ApiResponse<AdmissionChange[]>>(StatusCodes.Status200OK)]
+        public async Task<ObjectResult> GetHistory(Guid id)
         {
-            var changes = await management.AdmissionChanges.GetAllAsync(new SearchModel()
-            {
-                Filters = new Dictionary<string, string>()
-                {
-                    { nameof(AdmissionChange.AdmissionId), id.ToString() }
-                }
-            });
+            var (found, changes) = await ((AdmissionService)service).GetHistoryAsync(id);
+            if (!found)
+                return ResponseGenerator.NotFound("Entity with such GUID was not found");
             return ResponseGenerator.Ok(changes);
         }
-        private async Task TrackAndSaveAdmissionChanges(Admission prev, Admission next)
+        [HttpPost("addnote")]
+        [ProducesResponseType<ApiResponse<AdmissionChange[]>>(StatusCodes.Status200OK)]
+        public async Task<ObjectResult> AddNote(Guid id, string note)
         {
-            var changes = new List<ChangeTemplate>();
+            var result = await ((AdmissionService)service).AddNote(id, note);
 
-            var properties = typeof(Admission).GetProperties();
-
-            foreach (var property in properties)
+            return result switch
             {
-                if (property.Name == nameof(Admission.User) ||
-                    property.Name == nameof(Admission.Student) ||
-                    property.Name == nameof(Admission.Notes))
-                {
-                    continue;
-                }
-
-                var prevValue = property.GetValue(prev);
-                var nextValue = property.GetValue(next);
-
-                if (!Equals(prevValue, nextValue))
-                {
-                    changes.Add(new ChangeTemplate
-                    {
-                        Field = property.Name,
-                        Prev = prevValue?.ToString(),
-                        Next = nextValue?.ToString()
-                    });
-                }
-            }
-            var aChange = new AdmissionChange()
-            {
-                AdmissionId = prev.Id,
-                Data = JsonSerializer.SerializeToDocument(changes),
-                CreatedTime = DateTime.UtcNow
+                200 => ResponseGenerator.Ok("Note added"),
+                404 => ResponseGenerator.NotFound("Entity with such GUID was not found"),
+                _ => ResponseGenerator.BadRequest("Unknown error")
             };
-
-            await management.AdmissionChanges.CreateAsync(aChange);
         }
     }
 }

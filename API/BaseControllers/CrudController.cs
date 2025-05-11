@@ -1,67 +1,69 @@
 ﻿using API.Middleware;
+using Application.Services;
 using Domain.Models.Interfaces;
-using Domain.Models.JsonTemplates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Persistance.Data.Interfaces;
-using Utilities.Services;
+using Utilities.DataManipulation;
+using Utilities.Responses;
 
 namespace API.BaseControllers
 {
     [ApiController]
     [ModelValidation]
+    [Route("[controller]")]
 #if !DEBUG
     [Authorize]
 #endif
-    public abstract class CrudController<T, D>(IRepository<T> context) : 
-        ControllerBase where T : class, D, IModel
-                       where D : class
+    public abstract class CrudController<TModel, TCreate, TUpdate, TResponse>(ModelService<TModel, TCreate, TUpdate, TResponse> service)
+        : ControllerBase
+        where TModel : class, IModel, new()
+        where TCreate : class
+        where TUpdate : class, IModel
+        where TResponse : class, new()
     {
-        protected readonly IRepository<T> _context = context;
-
-        [HttpGet("{slug}")]
-        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
-        public virtual async Task<ObjectResult> GetById(string slug)
+        protected ModelService<TModel, TCreate, TUpdate, TResponse> service = service;
+        [HttpPost]
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status409Conflict)]
+        public virtual async Task<ObjectResult> Create([FromBody] TCreate entity)
         {
-            var entity = Guid.TryParse(slug, out var guid)
-                ? await _context.GetByIdAsync(guid)
-                : await _context.GetBySlugAsync(slug);
+            var (suceed, result) = await service.CreateAsync(entity);
+                
+            return suceed
+                ? ResponseGenerator.Ok(result)
+                : ResponseGenerator.BadRequest("Entity with such GUID exists");
+        }
+        [HttpGet("{guid}")]
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
+        public virtual async Task<ObjectResult> GetById(Guid guid)
+        {
+            var (succeed, result) = await service.GetByIdAsync(guid);
 
-
-            return entity is not null
-                ? ResponseGenerator.Ok(entity)
+            return succeed
+                ? ResponseGenerator.Ok(result)
                 : ResponseGenerator.NotFound("Entity with such GUID was not found");
         }
         [HttpPost("all")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status400BadRequest)]
         public virtual async Task<ObjectResult> GetAll([FromBody] SearchModel model)
         {
-            var (data, fullCount) = await _context.GetAllAsync(model);
+            var (data, fullCount) = await service.GetAllAsync(model);
             return ResponseGenerator.Ok(data, fullCount);
-        }
-        [HttpPost]
-        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status409Conflict)]
-        public virtual async Task<ObjectResult> New([FromBody] D entity)
-        {
-            var created = await _context.CreateAsync(Mapper.FromDTO<T, D>(entity));
-            if (created == default)
-                return ResponseGenerator.Conflict("Entity with such slug exists");
-
-            return ResponseGenerator.Ok(created);
         }
         [HttpPut]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
-        public virtual async Task<ObjectResult> Update([FromBody] T entity)
+        public virtual async Task<ObjectResult> Update([FromBody] TUpdate entity)
         {
-            if (await _context.GetByIdAsync(entity.Id) == null)
-                return ResponseGenerator.NotFound("Entity with such GUID was not found");
-            return ResponseGenerator.Ok(await _context.UpdateAsync(entity));
+            var (succeed, result) = await service.UpdateAsync(entity);
+                
+            return succeed
+                ? ResponseGenerator.Ok(result)
+                : ResponseGenerator.BadRequest("Entity with such GUID exists");
         }
         [HttpDelete]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public virtual async Task<ObjectResult> Delete(Guid id)
         {
-            if (!await _context.DeleteAsync(id))
+            if (!await service.DeleteAsync(id))
                 return ResponseGenerator.NotFound("Entity with such GUID was not found");
             return ResponseGenerator.Ok("No data");
         }

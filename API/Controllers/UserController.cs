@@ -1,95 +1,39 @@
 ﻿using API.BaseControllers;
+using Application.Models;
+using Application.Services;
 using Domain.Models.Entities;
-using Domain.Models.JsonTemplates;
-using Domain.Requests;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Persistance.Data.Interfaces;
-using Utilities.Services;
+using Utilities.DataManipulation;
+using Utilities.Responses;
 
 namespace API.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    [ProducesResponseType<ApiResponse<User>>(StatusCodes.Status200OK)]
-    public class UserController(IRepository<User> context) : CrudController<User, UserDTO>(context)
+    public class UserController(IServiceProvider serviceProvider) : CrudController<User, UserCreate, UserUpdate, UserResponse>
+        (ActivatorUtilities.CreateInstance<UserService>(serviceProvider))
     {
-        [ProducesResponseType<ApiResponse<IEnumerable<User>>>(StatusCodes.Status200OK)]
-        public override async Task<ObjectResult> GetAll([FromBody] SearchModel model)
-            => await base.GetAll(model);
-
-        [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType<ApiResponse<string>>(StatusCodes.Status200OK)]
-        public override async Task<ObjectResult> New([FromBody] UserDTO entity)
-        {
-            var user = Mapper.FromDTO<User, UserDTO>(entity);
-            user.Password = PasswordHashGenerator.GenerateHash(entity.Password);
+        [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> Create([FromBody] UserCreate entity) => await base.Create(entity);
+        [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> GetById(Guid guid) => await base.GetById(guid);
+        [ProducesResponseType<ApiResponse<UserResponse[]>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> GetAll([FromBody] SearchModel model) => await base.GetAll(model);
+        [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> Update([FromBody] UserUpdate entity) => await base.Update(entity);
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> Delete(Guid id) => await base.Delete(id);
 
-            var created = await _context.CreateAsync(user);
-            if (created == default)
-                return ResponseGenerator.Conflict("User with such slug exists");
-
-            return ResponseGenerator.Ok("Registered successfully");
-        }
-
-        [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
-        public ObjectResult Login([FromBody] LoginRequest request)
+        public ObjectResult Login([FromBody] UserLogin entity)
         {
-            var user = _context.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
-            if (user == null)
-                return ResponseGenerator.NotFound("User not found");
-
-            if (!PasswordHashGenerator.VerifyPassword(user.Password, request.Password))
-                return ResponseGenerator.BadRequest("Wrong password");
-
-            return ResponseGenerator.Ok(new { accessToken = JwtTokenGenerator.GenerateJwtToken(user.Login) });
+            var (loginResult, token) = (service as UserService)!.Login(entity);
+            return loginResult switch
+            {
+                200 => ResponseGenerator.Ok(token),
+                400 => ResponseGenerator.BadRequest("Invalid login/password"),
+                404 => ResponseGenerator.NotFound("User not found"),
+                _ => ResponseGenerator.InternalServerError("An unexpected error occurred"),
+            };
         }
-
-        [HttpPut("update")]
-        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
-        public override async Task<ObjectResult> Update([FromBody] User entity)
-        {
-            var existingUser = await _context.GetByIdAsync(entity.Id);
-            if (existingUser == null)
-                return ResponseGenerator.NotFound("User not found");
-
-            entity.Password = existingUser.Password;
-
-            return ResponseGenerator.Ok(await _context.UpdateAsync(entity));
-        }
-
-        [HttpPost("changepassword")]
-        public async Task<ObjectResult> ChangePassword([FromBody] ChangePasswordRequest request)
-        {
-            var user = _context.GetByField(nameof(Domain.Models.Entities.User.Login), request.Login);
-            if (user == null)
-                return ResponseGenerator.NotFound("User not found");
-
-            if (!PasswordHashGenerator.VerifyPassword(user.Password, request.OldPassword))
-                return ResponseGenerator.BadRequest("Old password is incorrect");
-
-            user.Password = PasswordHashGenerator.GenerateHash(request.NewPassword);
-            await _context.UpdateAsync(user);
-
-            return ResponseGenerator.Ok("Password changed successfully");
-        }
-
-        [HttpGet("me")]
-        public ObjectResult GetInfoByToken()
-        {
-            var login = User.Identity?.Name;
-            if (string.IsNullOrEmpty(login))
-                return ResponseGenerator.Unauthorized();
-
-            var user = _context.GetByField(nameof(Domain.Models.Entities.User.Login), login);
-            return user == null
-                ? ResponseGenerator.NotFound("User not found")
-                : ResponseGenerator.Ok(user);
-        }
-
     }
-
 }

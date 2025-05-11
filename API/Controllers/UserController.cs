@@ -2,6 +2,7 @@
 using Application.Models;
 using Application.Services;
 using Domain.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Utilities.DataManipulation;
 using Utilities.Responses;
@@ -24,6 +25,7 @@ namespace API.Controllers
         public override async Task<ObjectResult> Delete(Guid id) => await base.Delete(id);
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public ObjectResult Login([FromBody] UserLogin entity)
         {
             var (loginResult, token) = (service as UserService)!.Login(entity);

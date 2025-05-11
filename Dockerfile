@@ -5,6 +5,7 @@ WORKDIR /src
 # Copy solution and project files (only necessary files for restoring dependencies)
 COPY ["holberton-CRM.sln", "./"]
 COPY ["API/API.csproj", "API/"]
+COPY ["Application/Application.csproj", "Application/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Persistance/Persistance.csproj", "Persistance/"]
 COPY ["Utilities/Utilities.csproj", "Utilities/"]

@@ -7,26 +7,26 @@ using static Domain.ConstantErrorMessages;
 
 namespace Domain.Models.Entities
 {
-    public class User : UserDTO, IModel
+    public class User :  IModel
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }
-        public string BuildSlug()
-        {
-            return (Name + '-' + Surname).ToLower().Trim();
-        }
-    }
-    public class UserDTO
-    {
+        public string Slug { get; set; } = string.Empty;
         public UserRole Role { get; set; }
+
+
         [Required(ErrorMessage = FieldRequired)]
-        public string Name { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
         [Required(ErrorMessage = FieldRequired)]
-        public string Surname { get; set; } = string.Empty;
-        [PasswordValidation]
-        public string Password { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+
         [Required(ErrorMessage = FieldRequired)]
         public string Login { get; set; } = string.Empty;
-        public string Slug { get; set; } = string.Empty;
+        [PasswordValidation]
+        public string Password { get; set; } = string.Empty;
+        public string BuildSlug()
+        {
+            return (FirstName + '-' + LastName).ToLower().Trim();
+        }
     }
 }

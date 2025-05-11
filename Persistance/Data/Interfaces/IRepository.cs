@@ -1,5 +1,6 @@
-using Domain.Models.Interfaces;
-using Domain.Models.JsonTemplates;
+﻿using Domain.Models.Interfaces;
+using System.Linq.Expressions;
+using Utilities.DataManipulation;
 
 namespace Persistance.Data.Interfaces
 {
@@ -7,8 +8,9 @@ namespace Persistance.Data.Interfaces
     {
         Task<T?> CreateAsync(T entity);
         Task<T?> GetByIdAsync(Guid id);
-        Task<T?> GetBySlugAsync(string id);
+        Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes);
         T? GetByField(string fieldName, object value);
+        int GetCount(SearchModel model);
         Task<(IEnumerable<T> data, int fullCount)> GetAllAsync(SearchModel model);
         Task<T> UpdateAsync(T entity);
         Task<bool> DeleteAsync(Guid id);

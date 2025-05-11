@@ -1,24 +1,45 @@
-﻿namespace Utilities.Services;
-
-public class EnvLoader
+﻿namespace Utilities.Services
 {
-    public static void LoadEnvFile(string filePath)
+    /// <summary>
+    /// Provides functionality to load environment variables from a .env file.
+    /// This class is responsible for parsing .env files and setting environment variables in the current process.
+    /// </summary>
+    public static class EnvLoader
     {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException($"The .env file was not found at: {filePath}");
-
-        foreach (var line in File.ReadAllLines(filePath))
+        /// <summary>
+        /// Loads environment variables from a specified .env file.
+        /// </summary>
+        /// <param name="filePath">The path to the .env file to load.</param>
+        /// <exception cref="FileNotFoundException">Thrown when the specified .env file is not found.</exception>
+        /// <remarks>
+        /// Reads the file line by line, skipping comments and empty lines, then parses key-value pairs and sets them as environment variables.
+        /// </remarks>
+        public static void LoadEnvFile(string filePath)
         {
-            if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith('W'))
-                continue;
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($".env file not found at: {filePath}");
 
-            var parts = line.Split('=', 2);
-            if (parts.Length != 2)
-                continue;
+            foreach (var line in File.ReadLines(filePath))
+            {
+                var trimmed = line.Trim();
 
-            var key = parts[0].Trim();
-            var value = parts[1].Trim().Trim('"');
-            Environment.SetEnvironmentVariable(key, value);
+                // Skip empty lines or comments
+                if (string.IsNullOrEmpty(trimmed) ||
+                    trimmed.StartsWith('#') ||
+                    trimmed.StartsWith("//") ||
+                    trimmed.StartsWith(';'))
+                    continue;
+
+                var separatorIndex = trimmed.IndexOf('=');
+                if (separatorIndex <= 0 || separatorIndex == trimmed.Length - 1)
+                    continue;
+
+                var key = trimmed[..separatorIndex].Trim();
+                var value = trimmed[(separatorIndex + 1)..].Trim().Trim('"');
+
+                if (!string.IsNullOrEmpty(key))
+                    Environment.SetEnvironmentVariable(key, value);
+            }
         }
     }
 }

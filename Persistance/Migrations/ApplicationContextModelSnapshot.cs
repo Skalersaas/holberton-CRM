@@ -18,7 +18,7 @@ namespace Persistance.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -27,8 +27,7 @@ namespace Persistance.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "id");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("ApplyDate")
                         .HasColumnType("timestamp with time zone");
@@ -45,12 +44,10 @@ namespace Persistance.Migrations
                         .HasColumnType("integer");
 
                     b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "studentId");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "userId");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -68,12 +65,10 @@ namespace Persistance.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "id");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AdmissionId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "admissionId");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("timestamp with time zone");
@@ -92,12 +87,11 @@ namespace Persistance.Migrations
             modelBuilder.Entity("Domain.Models.Entities.AdmissionNote", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("AdmissionGuid")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "admissionId");
+                    b.Property<Guid>("AdmissionId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -115,10 +109,19 @@ namespace Persistance.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "id");
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("Name")
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsEnrolled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -127,10 +130,6 @@ namespace Persistance.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Surname")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -149,11 +148,15 @@ namespace Persistance.Migrations
                         .HasColumnType("uuid")
                         .HasAnnotation("Relational:JsonPropertyName", "id");
 
-                    b.Property<string>("Login")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Login")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -168,10 +171,6 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Surname")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Login")
@@ -181,6 +180,18 @@ namespace Persistance.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            FirstName = "Emin",
+                            LastName = "Amirov",
+                            Login = "Emishkins",
+                            Password = "CNb+bAGhE8gnpSsg4Tj0LCDfSVXmTn8K6lJ6FkUNueugQXpRTwNZTo+QhH0KOK8Z",
+                            Role = 0,
+                            Slug = "Best-Admin-1"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Models.Entities.Admission", b =>
@@ -205,7 +216,7 @@ namespace Persistance.Migrations
             modelBuilder.Entity("Domain.Models.Entities.AdmissionChange", b =>
                 {
                     b.HasOne("Domain.Models.Entities.Admission", "Admission")
-                        .WithMany()
+                        .WithMany("Changes")
                         .HasForeignKey("AdmissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -226,6 +237,8 @@ namespace Persistance.Migrations
 
             modelBuilder.Entity("Domain.Models.Entities.Admission", b =>
                 {
+                    b.Navigation("Changes");
+
                     b.Navigation("Notes");
                 });
 #pragma warning restore 612, 618

@@ -31,7 +31,7 @@ namespace API.Controllers
             var (loginResult, token) = (service as UserService)!.Login(entity);
             return loginResult switch
             {
-                200 => ResponseGenerator.Ok(token),
+                200 => ResponseGenerator.Ok(new { accessToken = token }),
                 400 => ResponseGenerator.BadRequest("Invalid login/password"),
                 404 => ResponseGenerator.NotFound("User not found"),
                 _ => ResponseGenerator.InternalServerError("An unexpected error occurred"),

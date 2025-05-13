@@ -37,5 +37,31 @@ namespace API.Controllers
                 _ => ResponseGenerator.InternalServerError("An unexpected error occurred"),
             };
         }
+        [HttpGet("me")]
+        public ObjectResult Me()
+        {
+            var (resultCode, model) = (service as UserService)!.GetInfoByIdentity(User.Identity?.Name);
+
+            return resultCode switch
+            {
+                200 => ResponseGenerator.Ok(model),
+                401 => ResponseGenerator.Unauthorized(),
+                404 => ResponseGenerator.NotFound("User not found"),
+                _ => ResponseGenerator.InternalServerError()
+            };
+        }
+        [HttpPost("changepassword")]
+        public ObjectResult ChangePassword(UserChangePassword model)
+        {
+            var (resultCode, user) = (service as UserService)!.ChangePassword(model);
+
+            return resultCode switch
+            {
+                200 => ResponseGenerator.Ok(user),
+                400 => ResponseGenerator.BadRequest(),
+                404 => ResponseGenerator.NotFound("User not found"),
+                _ => ResponseGenerator.InternalServerError()
+            };
+        } 
     }
 }

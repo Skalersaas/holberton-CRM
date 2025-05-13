@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Requests\**" />
+    <EmbeddedResource Remove="Requests\**" />
+    <None Remove="Requests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Enums\" />
-    <Folder Include="Requests\" />
   </ItemGroup>
 </Project>

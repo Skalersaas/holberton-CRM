@@ -8,7 +8,7 @@ namespace Application.Services
     public class StudentService(IRepository<Student> context) :
         ModelService<Student, StudentCreate, StudentUpdate, StudentResponse>(context)
     {
-        public override async Task<(bool, StudentResponse)> CreateAsync(StudentCreate entity)
+        public override async Task<(bool, StudentResponse?)> CreateAsync(StudentCreate entity)
         {
             var model = Mapper.FromDTO<Student, StudentCreate>(entity);
             var builtSlug = model.BuildSlug();
@@ -23,7 +23,7 @@ namespace Application.Services
             var created = await context.CreateAsync(model);
 
             return created == null
-                ? (false, new StudentResponse())
+                ? (false, null)
                 : (true, Mapper.FromDTO<StudentResponse, Student>(created));
         }
     }

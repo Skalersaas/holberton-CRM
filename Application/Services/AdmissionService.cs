@@ -11,7 +11,7 @@ namespace Application.Services
         ModelService<Admission, AdmissionCreate, AdmissionUpdate, AdmissionResponse>
         (admissions)
     {
-        public override async Task<(bool, AdmissionResponse)> CreateAsync(AdmissionCreate entity)
+        public override async Task<(bool, AdmissionResponse?)> CreateAsync(AdmissionCreate entity)
         {
             var model = Mapper.FromDTO<Admission, AdmissionCreate>(entity);
 
@@ -26,22 +26,22 @@ namespace Application.Services
             var created = await context.CreateAsync(model);
 
             return created == null
-                ? (false, new AdmissionResponse())
+                ? (false, null)
                 : (true, Mapper.FromDTO<AdmissionResponse, Admission>(created));
         }
-        public override async Task<(bool, AdmissionResponse)> GetByIdAsync(Guid guid)
+        public override async Task<(bool, AdmissionResponse?)> GetByIdAsync(Guid guid)
         {
             var admission = await context.GetByIdAsync(guid, x => x.Notes, x => x.Changes);
 
             return admission == null
-                ? (false, new AdmissionResponse())
+                ? (false, null)
                 : (true, Mapper.FromDTO<AdmissionResponse, Admission>(admission));
         }
-        public override async Task<(bool, AdmissionResponse)> UpdateAsync(AdmissionUpdate entity)
+        public override async Task<(bool, AdmissionResponse?)> UpdateAsync(AdmissionUpdate entity)
         {
             var found = await context.GetByIdAsync(entity.Id, x => x.Changes, x => x.Student!);
             if (found == null)
-                return (false, new AdmissionResponse());
+                return (false, null);
 
             if (entity.Status == Domain.Enums.AdmissionStatus.Submitted)
             {
@@ -56,7 +56,7 @@ namespace Application.Services
             var admission = await context.UpdateAsync(adm);
 
             return admission == null
-                ? (false, new AdmissionResponse())
+                ? (false, null)
                 : (true, Mapper.FromDTO<AdmissionResponse, Admission>(admission));
         }
         public async Task<(bool Found, AdmissionChange[] Changes)> GetHistoryAsync(Guid id)

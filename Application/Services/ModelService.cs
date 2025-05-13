@@ -10,24 +10,32 @@ namespace Application.Services
         where TResponse: class, new()
     {
         protected readonly IRepository<TModel> context = context;
-        public virtual async Task<(bool, TResponse)> CreateAsync(TCreate entity)
+        public virtual async Task<(bool, TResponse?)> CreateAsync(TCreate entity)
         {
             var model = Mapper.FromDTO<TModel, TCreate>(entity);
             var created = await context.CreateAsync(model);
             
             return created == null
-                ? (false, new TResponse())
+                ? (false, null)
                 : (true, Mapper.FromDTO<TResponse, TModel>(created));
         }
 
         public virtual async Task<bool> DeleteAsync(Guid guid) => await context.DeleteAsync(guid);
-        public virtual async Task<(bool, TResponse)> GetByIdAsync(Guid guid)
+        public virtual async Task<(bool, TResponse?)> GetByIdAsync(Guid guid)
         {
             var model = await context.GetByIdAsync(guid);
 
             return model == null
-                ? (false, new TResponse())
-                : (true, Mapper.FromDTO<TResponse, TModel>(model!));
+                ? (false, null)
+                : (true, Mapper.FromDTO<TResponse, TModel>(model));
+        }
+        public virtual (bool, TResponse?) GetByField(string fieldName, object value)
+        {
+            var model = context.GetByField(fieldName, value);
+
+            return model == null
+                ? (false, null)
+                : (true, Mapper.FromDTO<TResponse,TModel>(model));
         }
         public virtual async Task<(TResponse[], int)> GetAllAsync(SearchModel model)
         {
@@ -38,13 +46,13 @@ namespace Application.Services
             return (responseList, fullCount);
         }
 
-        public virtual async Task<(bool, TResponse)> UpdateAsync(TUpdate entity)
+        public virtual async Task<(bool, TResponse?)> UpdateAsync(TUpdate entity)
         {
             var model = Mapper.FromDTO<TModel, TUpdate>(entity);
             var updated = await context.UpdateAsync(model);
 
             return updated == null
-                ? (false, new TResponse())
+                ? (false, null)
                 : (true, Mapper.FromDTO<TResponse, TModel>(updated));
 
         }

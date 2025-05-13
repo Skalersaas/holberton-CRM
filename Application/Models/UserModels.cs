@@ -29,6 +29,15 @@ namespace Application.Models
         [Required(ErrorMessage = FieldRequired)]
         public UserRole Role { get; set; }
     }
+    public class UserChangePassword
+    {
+        [Required(ErrorMessage = FieldRequired)]
+        public string Login { get; set; } = string.Empty;
+        [Required(ErrorMessage = FieldRequired)]
+        public string OldPassword { get; set; } = string.Empty;
+        [Required(ErrorMessage = FieldRequired)]
+        public string NewPassword { get; set; } = string.Empty;
+    }
     public class UserLogin
     {
         [Required(ErrorMessage = FieldRequired)]

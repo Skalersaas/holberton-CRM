@@ -59,7 +59,15 @@ namespace Utilities.Responses
         /// <param name="message">The error message to include.</param>
         /// <returns>An ObjectResult with 401 Unauthorized status code.</returns>
         public static ObjectResult Unauthorized(string message = "Unauthorized")
-            => Error(message, StatusCodes.Status401Unauthorized);
+            => Error(message, StatusCodes.Status401Unauthorized);    
+        
+        /// <summary>
+        /// Creates a 403 Forbidden response.
+        /// </summary>
+        /// <param name="message">The error message to include.</param>
+        /// <returns>An ObjectResult with 403 Forbidden status code.</returns>
+        public static ObjectResult Forbidden(string message = "Forbidden")
+            => Error(message, StatusCodes.Status403Forbidden);
 
         /// <summary>
         /// Creates a 404 Not Found response.

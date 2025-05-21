@@ -32,6 +32,7 @@ namespace API.BaseControllers
                 ? ResponseGenerator.Ok(result)
                 : ResponseGenerator.BadRequest("Entity with such GUID exists");
         }
+
         [HttpGet("{guid}")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
         public virtual async Task<ObjectResult> GetById(Guid guid)
@@ -42,6 +43,20 @@ namespace API.BaseControllers
                 ? ResponseGenerator.Ok(result)
                 : ResponseGenerator.NotFound("Entity with such GUID was not found");
         }
+
+        [HttpGet("slug/{slug}")]
+        [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status404NotFound)]
+        public virtual async Task<ObjectResult> GetBySlug(string slug)
+        {
+            (bool succeed, TResponse? result) = Guid.TryParse(slug, out var guid)
+                ? await service.GetByIdAsync(guid)
+                : service.GetByField("Slug", slug);
+
+            return succeed
+                ? ResponseGenerator.Ok(result)
+                : ResponseGenerator.NotFound("Entity with such GUID or slug was not found");
+        }
+
         [HttpPost("all")]
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status400BadRequest)]
         public virtual async Task<ObjectResult> GetAll([FromBody] SearchModel model)

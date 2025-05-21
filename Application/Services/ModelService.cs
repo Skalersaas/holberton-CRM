@@ -29,6 +29,7 @@ namespace Application.Services
                 ? (false, null)
                 : (true, Mapper.FromDTO<TResponse, TModel>(model));
         }
+
         public virtual (bool, TResponse?) GetByField(string fieldName, object value)
         {
             var model = context.GetByField(fieldName, value);

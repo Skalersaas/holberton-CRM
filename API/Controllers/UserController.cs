@@ -15,12 +15,19 @@ namespace API.Controllers
         [HttpPost("register")]
         [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> Create([FromBody] UserCreate entity) => await base.Create(entity);
+
         [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> GetById(Guid guid) => await base.GetById(guid);
+
+        [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> GetBySlug(string slug) => await base.GetBySlug(slug);
+
         [ProducesResponseType<ApiResponse<UserResponse[]>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> GetAll([FromBody] SearchModel model) => await base.GetAll(model);
+
         [ProducesResponseType<ApiResponse<UserResponse>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> Update([FromBody] UserUpdate entity) => await base.Update(entity);
+
         [ProducesResponseType<ApiResponse<object>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> Delete(Guid id) => await base.Delete(id);
 
@@ -37,6 +44,7 @@ namespace API.Controllers
                 _ => ResponseGenerator.InternalServerError("An unexpected error occurred"),
             };
         }
+
         [HttpGet("me")]
         public ObjectResult Me()
         {
@@ -50,6 +58,7 @@ namespace API.Controllers
                 _ => ResponseGenerator.InternalServerError()
             };
         }
+
         [HttpPost("changepassword")]
         public ObjectResult ChangePassword(UserChangePassword model)
         {

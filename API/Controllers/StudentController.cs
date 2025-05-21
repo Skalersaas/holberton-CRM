@@ -16,7 +16,10 @@ namespace API.Controllers
         
         [ProducesResponseType<ApiResponse<StudentResponse>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> GetById(Guid guid) => await base.GetById(guid);
-        
+
+        [ProducesResponseType<ApiResponse<StudentResponse>>(StatusCodes.Status200OK)]
+        public override async Task<ObjectResult> GetBySlug(string slug) => await base.GetBySlug(slug);
+
         [ProducesResponseType<ApiResponse<StudentResponse[]>>(StatusCodes.Status200OK)]
         public override async Task<ObjectResult> GetAll([FromBody] SearchModel model) => await base.GetAll(model);
         

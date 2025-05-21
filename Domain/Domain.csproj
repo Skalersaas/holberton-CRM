@@ -11,8 +11,4 @@
     <EmbeddedResource Remove="Requests\**" />
     <None Remove="Requests\**" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Enums\" />
-  </ItemGroup>
 </Project>

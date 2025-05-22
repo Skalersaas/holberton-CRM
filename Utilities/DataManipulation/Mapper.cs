@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Domain.Models.Entities;
+using System.Reflection;
 
 namespace Utilities.DataManipulation
 {
@@ -23,6 +24,11 @@ namespace Utilities.DataManipulation
             where TDestination : new()
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
+
+            if (dto is Admission admission)
+            {
+                admission.GetFirstAndLastName();
+            }
 
             var destination = new TDestination();
 

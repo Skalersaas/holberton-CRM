@@ -31,19 +31,14 @@ namespace Domain.Models.Entities
         //public string BuildSlug()
         //{
         //    return (Student!.Slug + '-' + Program).ToLower().Trim();
-        //}
-
-        public Admission()
-        {
-            GetFirstNameAndLastName();
-        }
+        //
 
         public string BuildSlug()
         {
             return (FirstName + '-' + LastName + '-' + Program).ToLower().Trim();
         }
 
-        public void GetFirstNameAndLastName()
+        public void GetFirstAndLastName()
         {
             var parts = Slug.Split('-');
 

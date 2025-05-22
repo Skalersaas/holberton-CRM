@@ -44,6 +44,6 @@ namespace Application.Models
         public string LastName { get; set; } = string.Empty;
         public string Program { get; set; } = string.Empty;
         public DateTime ApplyDate { get; set; }
-        public Guid StudentId { get; set; }
+        public AdmissionStatus AdmissionStatus { get; set; }
     }
 }

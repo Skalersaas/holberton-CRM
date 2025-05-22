@@ -1,4 +1,5 @@
 ﻿using Application.Models;
+using Domain.Enums;
 using Domain.Models;
 using Domain.Models.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -47,6 +48,17 @@ namespace Application.Services
                 ? (false, null)
                 : (true, Mapper.FromDTO<AdmissionResponse, Admission>(admission));
         }
+
+        //public override Task<(AdmissionResponse[], int)> GetAllAsync(SearchModel model)
+        //{
+        //    return base.GetAllAsync(model);
+        //}
+
+        //public override (bool, AdmissionResponse?) GetByField(string fieldName, object value)
+        //{
+        //    return base.GetByField(fieldName, value);
+        //}
+
         public override async Task<(bool, AdmissionResponse?)> UpdateAsync(AdmissionUpdate entity)
         {
             var found = await context.GetByIdAsync(entity.Id, x => x.Changes, x => x.Student!);

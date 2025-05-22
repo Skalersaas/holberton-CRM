@@ -79,7 +79,7 @@ namespace Application.Services
 
         private static void TrackAndSaveAdmissionChanges(Admission prev, Admission next)
         {
-            var changes = new List<object>();
+            var changes = new List<ChangeTemplate>();
 
             var properties = typeof(Admission).GetProperties();
 
@@ -108,7 +108,7 @@ namespace Application.Services
             var aChange = new AdmissionChange()
             {
                 AdmissionId = prev.Id,
-                Data = JsonSerializer.SerializeToDocument(changes),
+                Data = changes,
                 CreatedTime = DateTime.UtcNow
             };
 

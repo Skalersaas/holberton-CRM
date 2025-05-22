@@ -8,9 +8,21 @@ namespace Application.Models
     public class AdmissionCreate
     {
         [Required(ErrorMessage = FieldRequired)]
-        public string Program { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+
         [Required(ErrorMessage = FieldRequired)]
-        public Guid StudentId { get; set; }
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = FieldRequired)]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = FieldRequired)]
+        public AdmissionProgram Program { get; set; }
+
+        public AdmissionStatus Status { get; set; }
+
+        public string ApplyDate { get; set; } = DateTime.Now.ToString();
+
         [Required(ErrorMessage = FieldRequired)]
         public Guid UserId { get; set; }
     }
@@ -28,7 +40,8 @@ namespace Application.Models
     public class AdmissionResponse
     {
         public Guid Id { get; set; }
-        public string Slug { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public string Program { get; set; } = string.Empty;
         public DateTime ApplyDate { get; set; }
         public Guid StudentId { get; set; }

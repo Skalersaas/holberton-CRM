@@ -1,4 +1,5 @@
 ﻿using Application.Models;
+using Domain.Enums;
 using Domain.Models.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Persistance.Data.Interfaces;
@@ -7,13 +8,17 @@ using Utilities.DataManipulation;
 
 namespace Application.Services
 {
-    public class AdmissionService(IRepository<Admission> admissions) :
+    public class AdmissionService(IRepository<Admission> admissions, IRepository<Student> students) :
         ModelService<Admission, AdmissionCreate, AdmissionUpdate, AdmissionResponse>
         (admissions)
     {
+        private readonly IRepository<Student> students = students;
         public override async Task<(bool, AdmissionResponse?)> CreateAsync(AdmissionCreate entity)
         {
             var model = Mapper.FromDTO<Admission, AdmissionCreate>(entity);
+
+            var programEnum = (AdmissionProgram)entity.Program;
+            model.Program = programEnum.ToString();
 
             var builtSlug = model.BuildSlug();
             model.Slug = builtSlug + "-" + context.GetCount(new SearchModel()
@@ -23,6 +28,11 @@ namespace Application.Services
                     { nameof(Admission.Slug), builtSlug }
                 }
             });
+
+            Student student = await students.CreateAsync(new Student { FirstName = entity.FirstName, LastName = entity.LastName, Phone = entity.Phone, IsEnrolled = false });
+            model.StudentId = student.Id;
+            model.Student = student;
+
             var created = await context.CreateAsync(model);
 
             return created == null
@@ -43,7 +53,7 @@ namespace Application.Services
             if (found == null)
                 return (false, null);
 
-            if (entity.Status == Domain.Enums.AdmissionStatus.Submitted)
+            if (entity.Status == AdmissionStatus.Submitted)
             {
                 found.Student!.IsEnrolled = true;
                 found.Student!.EnrolledAt = DateTime.UtcNow;

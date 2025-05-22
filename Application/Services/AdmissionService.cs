@@ -1,5 +1,5 @@
 ﻿using Application.Models;
-using Domain.Enums;
+using Domain.Models;
 using Domain.Models.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Persistance.Data.Interfaces;
@@ -88,7 +88,7 @@ namespace Application.Services
 
         private static void TrackAndSaveAdmissionChanges(Admission prev, Admission next)
         {
-            var changes = new List<object>();
+            var changes = new List<ChangeTemplate>();
 
             var properties = typeof(Admission).GetProperties();
 
@@ -106,18 +106,18 @@ namespace Application.Services
 
                 if (!Equals(prevValue, nextValue))
                 {
-                    changes.Add(new
+                    changes.Add(new ChangeTemplate
                     {
-                        Field = property.Name,
-                        Prev = prevValue?.ToString(),
-                        Next = nextValue?.ToString()
+                        FieldName = property.Name,
+                        PreValue = prevValue?.ToString(),
+                        PostValue = nextValue?.ToString()
                     });
                 }
             }
             var aChange = new AdmissionChange()
             {
                 AdmissionId = prev.Id,
-                Data = JsonSerializer.SerializeToDocument(changes),
+                Data = changes,
                 CreatedTime = DateTime.UtcNow
             };
 

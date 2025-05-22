@@ -1,4 +1,5 @@
 ﻿using Application.Models;
+using Domain.Models;
 using Domain.Models.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Persistance.Data.Interfaces;
@@ -96,11 +97,11 @@ namespace Application.Services
 
                 if (!Equals(prevValue, nextValue))
                 {
-                    changes.Add(new
+                    changes.Add(new ChangeTemplate
                     {
-                        Field = property.Name,
-                        Prev = prevValue?.ToString(),
-                        Next = nextValue?.ToString()
+                        FieldName = property.Name,
+                        PreValue = prevValue?.ToString(),
+                        PostValue = nextValue?.ToString()
                     });
                 }
             }

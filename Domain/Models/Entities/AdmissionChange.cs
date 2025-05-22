@@ -8,6 +8,6 @@ namespace Domain.Models.Entities
 
         public Guid AdmissionId { get; set; }
         public DateTime CreatedTime { get; set; }
-        public JsonDocument Data { get; set; }
+        public ChangeTemplate[] Data { get; set; }
     }
 }

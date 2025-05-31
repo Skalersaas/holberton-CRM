@@ -74,6 +74,15 @@ namespace Application.Services
 
             context.Detach(found);
             var adm = Mapper.FromDTO<Admission, AdmissionUpdate>(entity);
+
+            var programEnum = (AdmissionProgram)entity.Program;
+            adm.Program = programEnum.ToString();
+
+            var builtSlug = adm.BuildSlug();
+
+            adm.StudentId = found.StudentId;
+            adm.Slug = builtSlug;
+
             TrackAndSaveAdmissionChanges(found, adm);
 
             var admission = await context.UpdateAsync(adm);

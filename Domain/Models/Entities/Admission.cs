@@ -14,7 +14,6 @@ namespace Domain.Models.Entities
 
         [NotMapped]
         public string LastName { get; set; } = string.Empty;
-
         public string Program { get; set; } = string.Empty;
         public AdmissionStatus Status { get; set; }
         public DateTime ApplyDate { get; set; }

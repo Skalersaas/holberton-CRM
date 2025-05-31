@@ -40,9 +40,9 @@ namespace API.Controllers
         }
         [HttpPost("addnote")]
         [ProducesResponseType<ApiResponse<AdmissionChange[]>>(StatusCodes.Status200OK)]
-        public async Task<ObjectResult> AddNote(Guid id, string note)
+        public async Task<ObjectResult> AddNote(Guid id, string note, Guid userId)
         {
-            var result = await ((AdmissionService)service).AddNote(id, note);
+            var result = await ((AdmissionService)service).AddNote(id, note, userId);
 
             return result switch
             {

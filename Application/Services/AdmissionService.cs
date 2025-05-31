@@ -99,12 +99,12 @@ namespace Application.Services
                 ? (false, [])
                 : (true, [.. found.Changes]);
         }
-        public async Task<int> AddNote(Guid id, string note)
+        public async Task<int> AddNote(Guid id, string note, Guid userId)
         {
             var found = await context.GetByIdAsync(id, x => x.Notes);
             if (found == null) return 404;
 
-            found.Notes.Add(new(note, id));
+            found.Notes.Add(new(note, id/*, userId*/));
             await context.UpdateAsync(found);
             return 200;
         }

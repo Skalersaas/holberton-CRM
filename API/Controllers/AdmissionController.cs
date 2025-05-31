@@ -51,5 +51,19 @@ namespace API.Controllers
                 _ => ResponseGenerator.BadRequest("Unknown error")
             };
         }
+
+        [HttpPut("editnote")]
+        [ProducesResponseType<ApiResponse<AdmissionResponse>>(StatusCodes.Status200OK)]
+        public async Task<ObjectResult> EditNote(Guid id, string content)
+        {
+            var result = await ((AdmissionService)service).EditNote(id, content);
+
+            return result switch
+            {
+                200 => ResponseGenerator.Ok("Note updated"),
+                404 => ResponseGenerator.NotFound("Note with such ID was not found"),
+                _ => ResponseGenerator.BadRequest("Unknown error")
+            };
+        }
     }
 }

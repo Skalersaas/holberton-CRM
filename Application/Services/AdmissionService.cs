@@ -4,6 +4,7 @@ using Domain.Models;
 using Domain.Models.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Persistance.Data.Interfaces;
+using System.Data.Entity;
 using System.Text.Json;
 using Utilities.DataManipulation;
 
@@ -95,6 +96,27 @@ namespace Application.Services
             if (found == null) return 404;
 
             found.Notes.Add(new(note, id));
+            await context.UpdateAsync(found);
+            return 200;
+        }
+
+        public async Task<int> EditNote(Guid id, string content)
+        {
+            List<Admission> admissions = await context.GetAllAsync(a => a.Notes);
+            Admission? foundedAdmission = admissions.FirstOrDefault(a => a.Notes.Any(n => n.Id == id));
+
+            if (foundedAdmission == null)
+                return 404;
+
+            AdmissionNote? note = foundedAdmission.Notes.FirstOrDefault(n => n.Id == id);
+
+            if (note == null)
+                return 404;
+
+            note.Content = content;
+            note.CreatedOn = DateTime.UtcNow;
+
+            await context.UpdateAsync(foundedAdmission);
             return 200;
         }
 

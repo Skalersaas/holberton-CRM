@@ -15,5 +15,6 @@ namespace Persistance.Data.Interfaces
         Task<T> UpdateAsync(T entity);
         Task<bool> DeleteAsync(Guid id);
         void Detach(T entity);
+        Task<List<T>> GetAllAsync(params Expression<Func<T, object>>[] includes);
     }
 }

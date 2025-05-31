@@ -88,5 +88,16 @@ namespace Persistance.Data.Repositories
             return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
 
+        public async Task<List<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _set;
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }
